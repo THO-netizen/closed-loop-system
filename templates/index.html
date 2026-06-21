@@ -41,10 +41,6 @@
     .log-entry { animation: fadeIn .4s ease; }
     @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; } }
 
-    .stress-badge {
-      background: rgba(239,68,68,.12);
-      border: 1px solid rgba(239,68,68,.35);
-    }
     .rb-value { color: #FFE000; }
 
     /* MiFID II questionnaire */
@@ -81,17 +77,6 @@
 </header>
 
 <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
-
-  <!-- ── Stress-test banner ── -->
-  <div id="stress-banner" class="hidden stress-badge rounded-xl px-5 py-3 flex items-center gap-3 text-red-300 text-sm">
-    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-      <path stroke-linecap="round" stroke-linejoin="round"
-        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71
-           c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z
-           M12 15.75h.007v.008H12v-.008z"/>
-    </svg>
-    <span id="stress-text"></span>
-  </div>
 
   <!-- ── Balance cards ── -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -604,15 +589,37 @@ function buildChart(data, story) {
           backgroundColor: '#111111',
           borderColor: 'rgba(255,224,0,0.2)',
           borderWidth: 1,
-          titleColor: '#737373',
+          titleColor: '#9CA3AF',
           bodyColor: '#e5e5e5',
+          padding: 10,
           callbacks: {
-            label: (c) => ` ${c.dataset.label}: ${new Intl.NumberFormat('cs-CZ').format(Math.round(c.parsed.y))} Kč`,
-            afterBody: (items) => {
-              const idx = items[0]?.dataIndex;
-              if (idx == null) return [];
-              const ev = allEvents.find(e => e.chart_index === idx);
-              return ev ? [`── ${ev.label} ──`] : [];
+            title: (items) => {
+              const idx  = items[0]?.dataIndex;
+              const date = items[0]?.label || '';
+              const ev   = allEvents.find(e => e.chart_index === idx);
+              return ev ? `${date}  ·  ${ev.label}` : date;
+            },
+            label: (c) => {
+              if (c.parsed.y == null) return null;
+              const n   = new Intl.NumberFormat('cs-CZ');
+              const bal = n.format(Math.round(c.parsed.y));
+              const idx = c.dataIndex;
+              const ev  = allEvents.find(e => e.chart_index === idx);
+
+              const isHistEvt = ev && (ev.type === 'income' || ev.type === 'expense') && c.datasetIndex === 0;
+              const isPredEvt = ev && (ev.type === 'stress'  || ev.type === 'agent')   && c.datasetIndex === 1;
+
+              if (isHistEvt || isPredEvt) {
+                const amtStr = n.format(ev.amount);
+                const CTX = {
+                  income:  `Pravidelná výplata  +${amtStr} Kč`,
+                  expense: `Odchod plateb a zlozvyk  −${amtStr} Kč`,
+                  stress:  `Platba roční pojistky  −${amtStr} Kč`,
+                  agent:   `Přesun přebytku do ETF  −${amtStr} Kč`,
+                };
+                return [` Zůstatek: ${bal} Kč`, ` ↳ ${CTX[ev.type]}`];
+              }
+              return ` ${c.dataset.label}: ${bal} Kč`;
             },
           },
         },
@@ -753,10 +760,6 @@ async function fetchState() {
   document.getElementById('card-units').textContent =
     `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
 
-  document.getElementById('stress-text').textContent =
-    `⚠ Stress-test: za ${d.insurance_due_days} dní splatná roční pojistka ${fmt(d.insurance_amount)} – agent to zohlednil v predikci.`;
-  document.getElementById('stress-banner').classList.remove('hidden');
-
   buildChart(d.chart, d.chart_story);
   buildDonut(d.expense_donut);
   renderLog(d.agent_log);
@@ -864,6 +867,8 @@ document.getElementById('btn-reset').addEventListener('click', async () => {
     `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
   document.getElementById('score-badge').style.display = 'none';
   renderHabitWidget(d.detected_habits);
+  renderStory(d.chart_story);
+  buildDonut(d.expense_donut);
   renderLog([]);
   await fetchState();
 });

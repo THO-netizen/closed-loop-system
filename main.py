@@ -267,6 +267,7 @@ def _init_state(initial_balance: int = 52_000, rng=None) -> None:
     _state["habit_scenario"]   = habit["scenario"]
     _state["detected_habits"]  = _build_detected_habit(habit)
     _state["monthly_expense"]  = rng.randint(30_000, 60_000)
+    _state["monthly_salary"]   = rng.randint(55_000, 70_000)
 
 
 _init_state()
@@ -518,85 +519,99 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
 # ---------------------------------------------------------------------------
 # Chart story – annotates key balance events with human-readable explanations
 # ---------------------------------------------------------------------------
+# Chart story – 4 dynamic milestone cards, all values from per-reset _state
+# ---------------------------------------------------------------------------
 def _build_chart_story() -> dict:
     history    = _state.get("history", [])
     prediction = _state.get("prediction", [])
     last_60    = history[-60:] if len(history) >= 60 else history
     hist_len   = len(last_60)
     habit_info = _state.get("habit_info")
+    salary     = _state.get("monthly_salary", 65_000)
+    checking   = _state.get("checking_balance", 0.0)
 
     def _czk(v: float) -> str:
-        return f"{int(round(v)):,}".replace(",", " ") + " Kč"
+        return f"{int(round(v)):,}".replace(",", " ") + " Kč"
 
-    # ── History events ──────────────────────────────────────────────────────
     history_events: list[dict] = []
 
+    # ── Card 1: V\u00fdplata ──────────────────────────────────────────────
     salary_hits = [(i, e) for i, e in enumerate(last_60) if e["income"] > 0]
     if salary_hits:
         idx, entry = salary_hits[-1]
+        peak_balance = int(entry["balance"]) + (salary - 65_000)
         history_events.append({
             "chart_index": idx,
             "date":        entry["date"],
             "type":        "income",
-            "label":       "Výplata",
-            "amount":      entry["income"],
+            "label":       "V\u00fdplata",
+            "amount":      salary,
             "text": (
-                f"Na účet dorazila pravidelná měsíční mzda {_czk(entry['income'])}. "
-                f"Zůstatek vzrostl na {_czk(entry['balance'])}."
+                f"Na \u00fa\u010det dorazila pravideln\u00e1 m\u011bs\u00ed\u010dn\u00ed mzda {_czk(salary)}. "
+                f"\u0160pi\u010dkov\u00fd z\u016fstatek po p\u0159ips\u00e1n\u00ed: {_czk(peak_balance)}."
             ),
         })
 
+    # ── Card 2: V\u00fddajov\u00fd vrchol ───────────────────────────────────────────
+    RENT, ENERGY  = 22_000, 4_500
+    habit_monthly = (habit_info["ev"] // 12) if habit_info else 0
+    habit_name    = HABIT_META[habit_info["scenario"]]["name"] if habit_info else "V\u00fddaje"
+    expense_peak  = RENT + ENERGY + habit_monthly
+
     big_idx = max(range(len(last_60)), key=lambda i: last_60[i]["expense"])
     big     = last_60[big_idx]
-    habit_short = (
-        HABIT_META[habit_info["scenario"]]["name"].split(" – ")[0]
-        if habit_info else "Výdaje"
-    )
     history_events.append({
         "chart_index": big_idx,
         "date":        big["date"],
         "type":        "expense",
-        "label":       "Výdajový vrchol",
-        "amount":      big["expense"],
+        "label":       "V\u00fddajov\u00fd vrchol",
+        "amount":      expense_peak,
         "text": (
-            f"Odchod pravidelných plateb {_czk(big['expense'])} "
-            f"(nájemné, energie). Detekovaný zlozvyk: {habit_short}. "
-            f"Zůstatek klesl na {_czk(big['balance'])}."
+            f"N\u00e1jemn\u00e9 {_czk(RENT)} + energie {_czk(ENERGY)} "
+            f"+ zlozvyk [{habit_name}]: {_czk(habit_monthly)} m\u011bs\u00ed\u010dn\u011b. "
+            f"V\u00fddajov\u00fd vrchol: {_czk(expense_peak)}."
         ),
     })
 
-    # ── Prediction events ────────────────────────────────────────────────────
     prediction_events: list[dict] = []
 
-    stress_idx = next((i for i, e in enumerate(prediction) if e.get("is_stress")), None)
-    if stress_idx is not None:
-        se = prediction[stress_idx]
-        prediction_events.append({
-            "chart_index": hist_len + stress_idx,
-            "date":        se["date"],
-            "type":        "stress",
-            "label":       "Stress-test",
-            "amount":      INSURANCE_AMOUNT,
-            "text": (
-                f"Predikovaný stress-test: blíží se roční pojistka {_czk(INSURANCE_AMOUNT)}. "
-                f"Predikovaný zůstatek po platbě: {_czk(se['balance'])}."
-            ),
-        })
+    # ── Card 3: Stress-test ────────────────────────────────────────────────────
+    balance_after    = checking - INSURANCE_AMOUNT
+    stress_idx       = next((i for i, e in enumerate(prediction) if e.get("is_stress")), None)
+    stress_date      = (
+        prediction[stress_idx]["date"] if stress_idx is not None
+        else (TODAY + timedelta(days=INSURANCE_DUE_DAYS)).isoformat()
+    )
+    chart_stress_idx = hist_len + (stress_idx if stress_idx is not None else INSURANCE_DUE_DAYS - 1)
+    prediction_events.append({
+        "chart_index": chart_stress_idx,
+        "date":        stress_date,
+        "type":        "stress",
+        "label":       "Stress-test",
+        "amount":      INSURANCE_AMOUNT,
+        "text": (
+            f"Predikovan\u00fd stress-test: ro\u010dn\u00ed pojistka {_czk(INSURANCE_AMOUNT)}. "
+            f"Predikovan\u00fd z\u016fstatek po platb\u011b: {_czk(balance_after)}."
+        ),
+    })
 
-    # Agent intervention – a few days after the insurance stress event
+    # ── Card 4: AI Autopilot ──────────────────────────────────────────────────
+    safe_surplus   = max(0.0, balance_after - 30_000)
     agent_pred_idx = min(INSURANCE_DUE_DAYS + 2, len(prediction) - 1)
-    ae             = prediction[agent_pred_idx]
-    post_surplus   = max(0.0, ae.get("surplus", 0.0))
+    agent_date     = (
+        prediction[agent_pred_idx]["date"] if prediction
+        else (TODAY + timedelta(days=INSURANCE_DUE_DAYS + 3)).isoformat()
+    )
     prediction_events.append({
         "chart_index": hist_len + agent_pred_idx,
-        "date":        ae["date"],
+        "date":        agent_date,
         "type":        "agent",
         "label":       "AI Autopilot",
         "amount":      SIMULATION_AMOUNT,
         "text": (
-            f"AI Autopilot detekoval bezpečný přebytek {_czk(post_surplus)} "
-            f"po splatnosti pojistky. Odklání {_czk(SIMULATION_AMOUNT)} do ETF portfolia – "
-            f"snižuje zůstatek běžného účtu, ale buduje růstovou vrstvu majetku."
+            f"AI Autopilot detekoval bezpe\u010dn\u00fd p\u0159ebytek {_czk(safe_surplus)} "
+            f"po splatnosti pojistky. Odkl\u00e1n\u00ed {_czk(SIMULATION_AMOUNT)} do ETF portfolia \u2013 "
+            f"sni\u017euje z\u016fstatek b\u011b\u017en\u00e9ho \u00fa\u010dtu, ale buduje r\u016fstovou vrstvu majetku."
         ),
     })
 
@@ -604,11 +619,6 @@ def _build_chart_story() -> dict:
         "history_events":    history_events,
         "prediction_events": prediction_events,
     }
-
-
-# ---------------------------------------------------------------------------
-# Expense donut – Revolut-style spending breakdown with AI alarm
-# ---------------------------------------------------------------------------
 def _etf_5yr_gain(ev_annual: float, annual_return: float = 0.095) -> int:
     """Compound growth on redirected monthly savings over 5 years minus principal."""
     monthly_pmt = ev_annual / 12
@@ -758,5 +768,7 @@ async def reset():
         "portfolio_value":  _state["portfolio_value"],
         "portfolio_units":  _state["portfolio_units"],
         "etf_price":        _state["etf_price"],
-        "detected_habits":  _state["detected_habits"],   # widget updates immediately
+        "detected_habits":  _state["detected_habits"],
+        "chart_story":      _build_chart_story(),    # story panel updates immediately
+        "expense_donut":    _build_expense_donut(),  # donut updates immediately
     })
