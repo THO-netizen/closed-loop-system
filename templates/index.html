@@ -824,20 +824,37 @@ function renderStory(story) {
     agent:   'text-yellow-400',
   };
 
-  const card = (e) => `
-    <div class="rounded-xl border ${BORDER[e.type]} p-3 space-y-1.5">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm leading-none">${ICONS[e.type]}</span>
-        <span class="text-xs font-bold ${LBL_CLR[e.type]}">${e.label}</span>
-        <span class="ml-auto text-xs font-mono text-neutral-700">${fmtDate(e.date)}</span>
-      </div>
-      <p class="text-xs text-neutral-500 leading-relaxed">${e.text}</p>
-      ${e.amount ? `<p class="text-xs font-semibold ${LBL_CLR[e.type]}">${fmt(e.amount)}</p>` : ''}
-    </div>`;
+  const card = (e) => {
+    const pfx    = e.type === 'income' ? '' : '−';
+    const footer = e.amount != null ? `
+      <div class="flex items-center justify-between pt-1.5 mt-1.5 border-t border-white/5">
+        <span class="text-xs font-bold tabular-nums ${LBL_CLR[e.type]}">${pfx}${fmt(e.amount)}</span>
+        ${e.balance != null
+          ? `<span class="text-xs text-neutral-600">Zůstatek:&nbsp;<span class="font-semibold text-neutral-300">${fmt(e.balance)}</span></span>`
+          : ''}
+      </div>` : '';
+    return `
+      <div class="rounded-xl border ${BORDER[e.type]} p-3 space-y-1.5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-sm leading-none">${ICONS[e.type]}</span>
+          <span class="text-xs font-bold ${LBL_CLR[e.type]}">${e.label}</span>
+          <span class="ml-auto text-xs font-mono text-neutral-700">${fmtDate(e.date)}</span>
+        </div>
+        <p class="text-xs text-neutral-500 leading-relaxed">${e.text}</p>
+        ${footer}
+      </div>`;
+  };
 
   const empty = '<p class="text-xs text-neutral-700 italic">Žádná data.</p>';
   histBox.innerHTML = (story.history_events    || []).map(card).join('') || empty;
   predBox.innerHTML = (story.prediction_events || []).map(card).join('') || empty;
+
+  // If AI Autopilot event carries a projected ETF value, update the portfolio card
+  // so it reflects the same transfer the prediction chart already shows as a dip.
+  const agentEvt = (story.prediction_events || []).find(e => e.type === 'agent');
+  if (agentEvt?.etf_after != null) {
+    document.getElementById('card-portfolio').textContent = fmt(agentEvt.etf_after);
+  }
 }
 
 // ── State fetch ──────────────────────────────────────────────────────────────

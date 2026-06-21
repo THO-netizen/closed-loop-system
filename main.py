@@ -209,6 +209,8 @@ def _build_prediction_tooltips(prediction: list[dict]) -> list[dict]:
             result.append({"label": "Predikce: příchozí mzda", "delta": income})
         elif entry.get("is_stress"):
             result.append({"label": "Predikce: platba roční pojistky", "delta": -INSURANCE_AMOUNT})
+        elif entry.get("is_agent"):
+            result.append({"label": "Predikce: AI Autopilot – přesun do ETF portfolia", "delta": -SIMULATION_AMOUNT})
         elif d.day == 1:
             result.append({"label": "Predikce: nájemné + denní výdaje", "delta": net})
         elif d.day == 5:
@@ -295,19 +297,25 @@ def _build_prediction(current_balance: float) -> list[dict]:
         if i == INSURANCE_DUE_DAYS:
             expense += INSURANCE_AMOUNT
 
+        # AI Autopilot redirects surplus to ETF two days after insurance clears
+        is_agent = (i == INSURANCE_DUE_DAYS + 2)
+        if is_agent:
+            expense += SIMULATION_AMOUNT
+
         expense += 675
 
         net = income - expense
         balance += net
         surplus = max(0.0, balance - 30_000)
         entries.append({
-            "date": d.isoformat(),
-            "income": income,
-            "expense": expense,
-            "net": net,
-            "balance": balance,
-            "surplus": surplus,
+            "date":      d.isoformat(),
+            "income":    income,
+            "expense":   expense,
+            "net":       net,
+            "balance":   balance,
+            "surplus":   surplus,
             "is_stress": i == INSURANCE_DUE_DAYS,
+            "is_agent":  is_agent,
         })
     return entries
 
@@ -622,9 +630,8 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
 
 
 # ---------------------------------------------------------------------------
-# Chart story – annotates key balance events with human-readable explanations
-# ---------------------------------------------------------------------------
-# Chart story – 4 dynamic milestone cards, all values from per-reset _state
+# Chart story – single source of truth: all values read from the same arrays
+# the chart sends to the frontend, so cards always match the graph exactly.
 # ---------------------------------------------------------------------------
 def _build_chart_story() -> dict:
     history    = _state.get("history", [])
@@ -632,91 +639,87 @@ def _build_chart_story() -> dict:
     last_60    = history[-60:] if len(history) >= 60 else history
     hist_len   = len(last_60)
     habit_info = _state.get("habit_info")
-    salary     = _state.get("monthly_salary", 65_000)
-    checking   = _state.get("checking_balance", 0.0)
+    portfolio  = _state.get("portfolio_value", 0.0)
 
     def _czk(v: float) -> str:
         return f"{int(round(v)):,}".replace(",", " ") + " Kč"
 
     history_events: list[dict] = []
 
-    # ── Card 1: V\u00fdplata ──────────────────────────────────────────────
+    # Card 1: Výplata – balance read directly from chart array, no adjustments
     salary_hits = [(i, e) for i, e in enumerate(last_60) if e["income"] > 0]
     if salary_hits:
         idx, entry = salary_hits[-1]
-        peak_balance = int(entry["balance"]) + (salary - 65_000)
+        income_amt = int(entry["income"])   # 65 000 from history
+        bal_after  = int(entry["balance"])  # exact value the chart plots
         history_events.append({
             "chart_index": idx,
             "date":        entry["date"],
             "type":        "income",
-            "label":       "V\u00fdplata",
-            "amount":      salary,
+            "label":       "Výplata",
+            "amount":      bal_after,        # green number = resulting balance
             "text": (
-                f"Na \u00fa\u010det dorazila pravideln\u00e1 m\u011bs\u00ed\u010dn\u00ed mzda {_czk(salary)}. "
-                f"\u0160pi\u010dkov\u00fd z\u016fstatek po p\u0159ips\u00e1n\u00ed: {_czk(peak_balance)}."
+                f"Na účet dorazila pravidelná mzda {_czk(income_amt)}. "
+                f"Zůstatek po připsání: {_czk(bal_after)}."
             ),
         })
 
-    # ── Card 2: V\u00fddajov\u00fd vrchol ───────────────────────────────────────────
-    RENT, ENERGY  = 22_000, 4_500
-    habit_monthly = (habit_info["ev"] // 12) if habit_info else 0
-    habit_name    = HABIT_META[habit_info["scenario"]]["name"] if habit_info else "V\u00fddaje"
-    expense_peak  = RENT + ENERGY + habit_monthly
-
-    big_idx = max(range(len(last_60)), key=lambda i: last_60[i]["expense"])
-    big     = last_60[big_idx]
+    # Card 2: Výdajový vrchol – amounts come from the entry, not from formulas
+    big_idx     = max(range(len(last_60)), key=lambda i: last_60[i]["expense"])
+    big         = last_60[big_idx]
+    expense_amt = int(big["expense"])       # exact expense the chart reflects
+    bal_at_exp  = int(big["balance"])       # exact balance the chart shows
+    habit_name  = HABIT_META[habit_info["scenario"]]["name"] if habit_info else "Výdaje"
     history_events.append({
         "chart_index": big_idx,
         "date":        big["date"],
         "type":        "expense",
-        "label":       "V\u00fddajov\u00fd vrchol",
-        "amount":      expense_peak,
+        "label":       "Výdajový vrchol",
+        "amount":      expense_amt,          # red number = total expense
+        "balance":     bal_at_exp,           # displayed in footer
         "text": (
-            f"N\u00e1jemn\u00e9 {_czk(RENT)} + energie {_czk(ENERGY)} "
-            f"+ zlozvyk [{habit_name}]: {_czk(habit_monthly)} m\u011bs\u00ed\u010dn\u011b. "
-            f"V\u00fddajov\u00fd vrchol: {_czk(expense_peak)}."
+            f"Výdajový vrchol {_czk(expense_amt)}: nájemné, energie a zlozvyk [{habit_name}]. "
+            f"Zůstatek po odchodu plateb: {_czk(bal_at_exp)}."
         ),
     })
 
     prediction_events: list[dict] = []
 
-    # ── Card 3: Stress-test ────────────────────────────────────────────────────
-    balance_after    = checking - INSURANCE_AMOUNT
-    stress_idx       = next((i for i, e in enumerate(prediction) if e.get("is_stress")), None)
-    stress_date      = (
-        prediction[stress_idx]["date"] if stress_idx is not None
-        else (TODAY + timedelta(days=INSURANCE_DUE_DAYS)).isoformat()
-    )
-    chart_stress_idx = hist_len + (stress_idx if stress_idx is not None else INSURANCE_DUE_DAYS - 1)
-    prediction_events.append({
-        "chart_index": chart_stress_idx,
-        "date":        stress_date,
-        "type":        "stress",
-        "label":       "Stress-test",
-        "amount":      INSURANCE_AMOUNT,
-        "text": (
-            f"Predikovan\u00fd stress-test: ro\u010dn\u00ed pojistka {_czk(INSURANCE_AMOUNT)}. "
-            f"Predikovan\u00fd z\u016fstatek po platb\u011b: {_czk(balance_after)}."
-        ),
-    })
+    # Card 3: Stress-test – balance AFTER insurance from prediction array
+    stress_idx = next((i for i, e in enumerate(prediction) if e.get("is_stress")), None)
+    if stress_idx is not None:
+        bal_after_stress = int(prediction[stress_idx]["balance"])
+        prediction_events.append({
+            "chart_index": hist_len + stress_idx,
+            "date":        prediction[stress_idx]["date"],
+            "type":        "stress",
+            "label":       "Stress-test",
+            "amount":      INSURANCE_AMOUNT,       # red number = insurance payment
+            "balance":     bal_after_stress,        # displayed in footer
+            "text": (
+                f"Platba roční pojistky {_czk(INSURANCE_AMOUNT)}. "
+                f"Predikovaný zůstatek po platbě: {_czk(bal_after_stress)}."
+            ),
+        })
 
-    # ── Card 4: AI Autopilot ──────────────────────────────────────────────────
-    safe_surplus   = max(0.0, balance_after - 30_000)
-    agent_pred_idx = min(INSURANCE_DUE_DAYS + 2, len(prediction) - 1)
-    agent_date     = (
-        prediction[agent_pred_idx]["date"] if prediction
-        else (TODAY + timedelta(days=INSURANCE_DUE_DAYS + 3)).isoformat()
-    )
+    # Card 4: AI Autopilot – SIMULATION_AMOUNT is a real deduction in _build_prediction()
+    agent_idx = next((i for i, e in enumerate(prediction) if e.get("is_agent")), None)
+    if agent_idx is None:
+        agent_idx = min(INSURANCE_DUE_DAYS + 2, len(prediction) - 1)
+    bal_after_agent = int(prediction[agent_idx]["balance"])
+    etf_projected   = int(portfolio + SIMULATION_AMOUNT)
     prediction_events.append({
-        "chart_index": hist_len + agent_pred_idx,
-        "date":        agent_date,
+        "chart_index": hist_len + agent_idx,
+        "date":        prediction[agent_idx]["date"],
         "type":        "agent",
         "label":       "AI Autopilot",
-        "amount":      SIMULATION_AMOUNT,
+        "amount":      SIMULATION_AMOUNT,      # yellow number = ETF transfer
+        "balance":     bal_after_agent,        # displayed in footer
+        "etf_after":   etf_projected,          # used to update portfolio card
         "text": (
-            f"AI Autopilot detekoval bezpe\u010dn\u00fd p\u0159ebytek {_czk(safe_surplus)} "
-            f"po splatnosti pojistky. Odkl\u00e1n\u00ed {_czk(SIMULATION_AMOUNT)} do ETF portfolia \u2013 "
-            f"sni\u017euje z\u016fstatek b\u011b\u017en\u00e9ho \u00fa\u010dtu, ale buduje r\u016fstovou vrstvu majetku."
+            f"AI Autopilot přesunul přebytek {_czk(SIMULATION_AMOUNT)} do ETF portfolia. "
+            f"Zůstatek běžného účtu: {_czk(bal_after_agent)}. "
+            f"Projekce ETF po převodu: {_czk(etf_projected)}."
         ),
     })
 
