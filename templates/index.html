@@ -566,7 +566,8 @@ function buildDonut(data) {
 }
 
 function buildChart(data, story) {
-  const { labels, history_balance, predicted_balance } = data;
+  const { labels, history_balance, predicted_balance,
+          history_tooltips = [], prediction_tooltips = [] } = data;
   const histLen = history_balance.length;
 
   const histSeries = [...history_balance, ...Array(predicted_balance.length).fill(null)];
@@ -667,6 +668,7 @@ function buildChart(data, story) {
               const isHistEvt = ev && (ev.type === 'income' || ev.type === 'expense') && c.datasetIndex === 0;
               const isPredEvt = ev && (ev.type === 'stress'  || ev.type === 'agent')   && c.datasetIndex === 1;
 
+              // Milestone events keep their detailed tooltip
               if (isHistEvt || isPredEvt) {
                 const amtStr = n.format(ev.amount);
                 const CTX = {
@@ -677,6 +679,26 @@ function buildChart(data, story) {
                 };
                 return [` Zůstatek: ${bal} Kč`, ` ↳ ${CTX[ev.type]}`];
               }
+
+              // History day with generated daily label
+              if (c.datasetIndex === 0 && history_tooltips[idx]) {
+                const tt  = history_tooltips[idx];
+                const abs = n.format(Math.abs(Math.round(tt.delta)));
+                const sgn = tt.delta >= 0 ? '+' : '−';
+                return [` Zůstatek: ${bal} Kč`, ` Pohyb: ${tt.label} (${sgn}${abs} Kč)`];
+              }
+
+              // Prediction day with generated daily label
+              if (c.datasetIndex === 1) {
+                const pIdx = idx - histLen;
+                if (pIdx >= 0 && prediction_tooltips[pIdx]) {
+                  const tt  = prediction_tooltips[pIdx];
+                  const abs = n.format(Math.abs(Math.round(tt.delta)));
+                  const sgn = tt.delta >= 0 ? '+' : '−';
+                  return [` Zůstatek: ${bal} Kč`, ` Pohyb: ${tt.label} (${sgn}${abs} Kč)`];
+                }
+              }
+
               return ` ${c.dataset.label}: ${bal} Kč`;
             },
           },

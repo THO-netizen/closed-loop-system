@@ -119,6 +119,109 @@ def _score_to_profile(q1: int, q2: int, q3: int) -> tuple[str, int]:
 
 
 # ---------------------------------------------------------------------------
+# Daily tooltip label pools – per-habit and generic
+# ---------------------------------------------------------------------------
+_DAILY_LABEL_POOLS: dict[str, list[str]] = {
+    "gastro": [
+        "Zbytný výdaj: Wolt / Bolt Food",
+        "Gastro lifestyle creep: Bolt Food + kavárna",
+        "Zbytný výdaj: donáška / restaurace",
+    ],
+    "subs": [
+        "Automatická platba: Netflix / Spotify",
+        "Předplatné: SaaS / cloudová aplikace",
+        "Drobný výdaj: streamovací služba",
+    ],
+    "weekend": [
+        "Víkendový nákup: Večerka / Čerpací stanice",
+        "Impulzivní nákup: Smíšené zboží",
+        "Víkendová mikrotransakce: drogerie",
+    ],
+    "energy": [
+        "Fixní příkaz: energie (nadprůměrná sazba)",
+        "Přeplatek: Plyn / Elektřina",
+        "Trvalý příkaz: pojistné (20 % nad trhem)",
+    ],
+    "default": [
+        "Běžný nákup potravin (Albert / Lidl)",
+        "Platba kartou: Čerpací stanice",
+        "Nákup: Lékárna / Drogerie",
+        "Bezkontaktní platba: Potraviny",
+        "Online platba: Alza / Mall.cz",
+        "Nákup: Smíšené zboží",
+        "Platba kartou: rychlé občerstvení",
+    ],
+}
+
+
+def _build_daily_tooltips(
+    last60: list[dict], habit_scenario: str | None, rng: random.Random
+) -> list[dict]:
+    result: list[dict] = []
+    for entry in last60:
+        d       = date.fromisoformat(entry["date"])
+        income  = entry["income"]
+        net     = entry["net"]
+        gastro  = entry.get("gastro", 0)
+        subs    = entry.get("subscriptions", 0)
+        w_micro = entry.get("weekend_micro", 0)
+
+        if income > 0:
+            result.append({"label": "Příchozí platba: měsíční mzda", "delta": income})
+            continue
+        if d.day == 1:
+            result.append({"label": "Nájemné −22 000 Kč + denní výdaje", "delta": net})
+            continue
+        if d.day == 5:
+            result.append({"label": "Záloha energie −4 500 Kč + denní výdaje", "delta": net})
+            continue
+        if d.day == 10 and subs > 0:
+            result.append({"label": "Předplatné −1 500 Kč + denní výdaje", "delta": net})
+            continue
+        if net == 0:
+            result.append({"label": "Žádné zaznamenané pohyby na účtu", "delta": 0})
+            continue
+
+        if habit_scenario == "gastro_creep" and gastro > 0:
+            pool = _DAILY_LABEL_POOLS["gastro"]
+        elif habit_scenario == "subscription_trap" and d.weekday() in (0, 2, 4):
+            pool = _DAILY_LABEL_POOLS["subs"]
+        elif habit_scenario == "weekend_micro" and w_micro > 0:
+            pool = _DAILY_LABEL_POOLS["weekend"]
+        elif habit_scenario == "overpaying" and d.weekday() in (1, 3):
+            pool = _DAILY_LABEL_POOLS["energy"]
+        else:
+            pool = _DAILY_LABEL_POOLS["default"]
+
+        result.append({"label": rng.choice(pool), "delta": net})
+
+    return result
+
+
+def _build_prediction_tooltips(prediction: list[dict]) -> list[dict]:
+    result: list[dict] = []
+    for entry in prediction:
+        d      = date.fromisoformat(entry["date"])
+        income = entry["income"]
+        net    = entry["net"]
+
+        if income > 0:
+            result.append({"label": "Predikce: příchozí mzda", "delta": income})
+        elif entry.get("is_stress"):
+            result.append({"label": "Predikce: platba roční pojistky", "delta": -INSURANCE_AMOUNT})
+        elif d.day == 1:
+            result.append({"label": "Predikce: nájemné + denní výdaje", "delta": net})
+        elif d.day == 5:
+            result.append({"label": "Predikce: záloha energie + denní výdaje", "delta": net})
+        elif d.day == 10:
+            result.append({"label": "Predikce: předplatné + denní výdaje", "delta": net})
+        else:
+            result.append({"label": "Predikce: odhadovaný denní výdaj", "delta": -675})
+
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Mock history – deterministic daily amounts (seed 42), variable start balance
 # ---------------------------------------------------------------------------
 def _build_history(initial_balance: int = 52_000) -> list[dict]:
@@ -268,6 +371,8 @@ def _init_state(initial_balance: int = 52_000, rng=None) -> None:
     _state["detected_habits"]  = _build_detected_habit(habit)
     _state["monthly_expense"]  = rng.randint(30_000, 60_000)
     _state["monthly_salary"]   = rng.randint(55_000, 70_000)
+    _state["history_tooltips"]    = _build_daily_tooltips(history[-60:], habit["scenario"], rng)
+    _state["prediction_tooltips"] = _build_prediction_tooltips(_state["prediction"])
 
 
 _init_state()
@@ -714,10 +819,12 @@ async def get_state():
         "agent_log": _state["agent_log"][-20:],
         "detected_habits": _state.get("detected_habits"),  # None until first agent run
         "chart": {
-            "labels": chart_labels,
-            "history_balance": [e["balance"] for e in history[-60:]],
-            "predicted_balance": [e["balance"] for e in prediction],
-            "stress_index": len(history[-60:]) + INSURANCE_DUE_DAYS - 1,
+            "labels":              chart_labels,
+            "history_balance":     [e["balance"] for e in history[-60:]],
+            "predicted_balance":   [e["balance"] for e in prediction],
+            "history_tooltips":    _state.get("history_tooltips", []),
+            "prediction_tooltips": _state.get("prediction_tooltips", []),
+            "stress_index":        len(history[-60:]) + INSURANCE_DUE_DAYS - 1,
         },
         "chart_story":    _build_chart_story(),
         "expense_donut":  _build_expense_donut(),
