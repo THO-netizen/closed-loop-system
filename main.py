@@ -627,6 +627,13 @@ def _etf_5yr_gain(ev_annual: float, annual_return: float = 0.095) -> int:
     return int(fv - monthly_pmt * 60)
 
 
+def _inflation_loss_5yr(ev_annual: float, inflation: float = 0.035) -> int:
+    """Purchasing-power loss when EV savings sit at 0 % while inflation runs at `inflation` p.a."""
+    total_nominal = ev_annual * 5
+    real_value    = total_nominal / (1 + inflation) ** 5
+    return int(total_nominal - real_value)
+
+
 def _build_expense_donut() -> dict:
     history    = _state.get("history", [])
     habit_info = _state.get("habit_info")
@@ -667,11 +674,12 @@ def _build_expense_donut() -> dict:
         alarm_seg  = next(s for s in segments if s["key"] == alarm_key)
         excess_pct = max(0, alarm_seg["pct"] - alarm_cat["limit"])
         alarm_payload = {
-            "category":        alarm_seg["label"],
-            "current_pct":     alarm_seg["pct"],
-            "excess_pct":      excess_pct,
-            "monthly_savings": habit_info["ev"] // 12,
-            "etf_5yr_bonus":   _etf_5yr_gain(habit_info["ev"]),
+            "category":          alarm_seg["label"],
+            "current_pct":       alarm_seg["pct"],
+            "excess_pct":        excess_pct,
+            "monthly_savings":   habit_info["ev"] // 12,
+            "etf_5yr_bonus":     _etf_5yr_gain(habit_info["ev"]),
+            "inflation_loss_5yr": _inflation_loss_5yr(habit_info["ev"]),
         }
 
     return {

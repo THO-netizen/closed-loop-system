@@ -191,6 +191,27 @@
     </div>
   </div>
 
+  <!-- ── Mode toggle: Autopilot vs. Kopilot ── -->
+  <div class="flex justify-center py-2">
+    <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-neutral-950 border border-white/8">
+      <button id="toggle-autopilot"
+              data-mode="autopilot"
+              class="mode-btn active-mode px-4 py-2 rounded-lg text-xs font-bold transition-all
+                     bg-yellow-400 text-neutral-950">
+        ✈&nbsp;&nbsp;Plně autonomní Autopilot
+      </button>
+      <button id="toggle-kopilot"
+              data-mode="kopilot"
+              class="mode-btn px-4 py-2 rounded-lg text-xs font-semibold transition-all
+                     text-neutral-500 hover:text-neutral-200">
+        🤝&nbsp;&nbsp;Schvalovací Kopilot
+      </button>
+    </div>
+  </div>
+  <p id="mode-hint" class="text-center text-xs text-neutral-600 -mt-1 mb-1">
+    Agent provádí transakce samostatně na pozadí.
+  </p>
+
   <!-- ── Trigger row ── -->
   <div class="flex flex-col sm:flex-row items-center justify-center gap-3 py-2">
     <button id="btn-open-mifid"
@@ -385,7 +406,7 @@
             d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0
                010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
         </svg>
-        Vyhodnotit a spustit autonomního pilota
+        <span id="btn-run-label">Vyhodnotit a spustit autonomního pilota</span>
       </button>
       <div id="spinner" class="hidden items-center gap-2 shrink-0 py-1">
         <svg class="animate-spin w-5 h-5" style="color:#FFE000" fill="none" viewBox="0 0 24 24">
@@ -404,6 +425,37 @@
 // ── helpers ──────────────────────────────────────────────────────────────────
 const fmt = (n) => new Intl.NumberFormat('cs-CZ').format(Math.round(n)) + ' Kč';
 const fmtDate = (s) => new Date(s).toLocaleDateString('cs-CZ', {day:'2-digit',month:'2-digit'});
+
+// ── Mode toggle: Autopilot / Kopilot ─────────────────────────────────────────
+let agentMode = 'autopilot';
+
+const MODE_CONFIG = {
+  autopilot: {
+    hint:   'Agent provádí transakce samostatně na pozadí.',
+    btnRun: 'Vyhodnotit a spustit autonomního pilota',
+  },
+  kopilot: {
+    hint:   'Agent před každou transakcí zašle push notifikaci ke schválení.',
+    btnRun: 'Vyhodnotit a aktivovat asistenta',
+  },
+};
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    agentMode = btn.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(b => {
+      const active = b.dataset.mode === agentMode;
+      b.classList.toggle('bg-yellow-400',   active);
+      b.classList.toggle('text-neutral-950', active);
+      b.classList.toggle('font-bold',        active);
+      b.classList.toggle('text-neutral-500', !active);
+      b.classList.toggle('hover:text-neutral-200', !active);
+    });
+    const cfg = MODE_CONFIG[agentMode];
+    document.getElementById('mode-hint').textContent = cfg.hint;
+    document.getElementById('btn-run-label').textContent = cfg.btnRun;
+  });
+});
 
 // ── Chart setup ──────────────────────────────────────────────────────────────
 const ctx = document.getElementById('cashflow-chart').getContext('2d');
@@ -497,6 +549,12 @@ function buildDonut(data) {
           Přesměrováním této částky do vašeho iShares S&amp;P&nbsp;500 ETF vzroste
           očekávaná hodnota vašeho majetku za 5 let o
           <span class="font-bold text-yellow-400">${fmt(alarm.etf_5yr_bonus)}</span>.
+        </p>
+        <p class="text-xs leading-relaxed text-neutral-400">
+          🏦 <span class="font-bold text-neutral-300">Ušlá příležitost:</span>
+          Při nulovém zhodnocení na běžném účtu je Expected Value ztráty kupní síly
+          vlivem inflace za 5 let vyčíslena na
+          <span class="font-bold text-red-400">${fmt(alarm.inflation_loss_5yr)}&nbsp;Kč</span>.
         </p>
       </div>`;
   } else {
