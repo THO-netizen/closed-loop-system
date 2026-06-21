@@ -268,47 +268,45 @@ def _detect_spending_habits(risk_profile: str) -> list[dict]:
 
     if scenario == "gastro_creep":
         recent_gastro = sum(e.get("gastro", 0) for e in history[-60:])
-        prior_gastro = (
+        prior_gastro  = (
             sum(e.get("gastro", 0) for e in history[-120:-60])
             if len(history) >= 120 else round(recent_gastro * 0.74)
         )
         growth_pct = round((recent_gastro / prior_gastro - 1) * 100) if prior_gastro > 0 else 35
-        monthly_excess = max(round((recent_gastro - prior_gastro) / 2), 400)
-        ev_loss = monthly_excess * 12
-        variance = 0.0045
+        ev_loss  = 8_500
+        variance = 0.0012
         _log(
             "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Gastro & Donáška – Lifestyle Creep' "
-            f"(výdaje za jídlo a donášku vzrostly o {growth_pct} % meziměsíčně). "
+            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Gastro & Donáška – Lifestyle Creep'. "
+            f"Výdaje za Wolt/Bolt Food a kavárny vzrostly o {growth_pct} % meziměsíčně. "
             f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
             f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje nastavení měsíčního limitu a přesměrování úspory do {profile['etf_label']}.",
+            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
         )
         detected.append({
             "key": "gastro_creep",
             "name": "Gastro & Donáška – Lifestyle Creep",
-            "detail": f"výdaje vzrostly o {growth_pct} % MoM",
+            "detail": f"výdaje za jídlo vzrostly o {growth_pct} % MoM",
             "ev_loss": ev_loss,
             "variance": variance,
         })
 
     elif scenario == "subscription_trap":
-        active_services = 6
-        monthly_subs = max(round(sum(e.get("subscriptions", 0) for e in history[-30:])), 1_200)
-        ev_loss = monthly_subs * 12
+        ev_loss  = 14_400
         variance = 0.0025
         _log(
             "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Subskripční peklo – Subscription Trap' "
-            f"({active_services} aktivních předplatných služeb). "
+            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Subskripční peklo – Subscription Trap'. "
+            f"Nahromadění 6+ drobných měsíčních plateb (Netflix, Spotify, SaaS, gym), "
+            f"které nejsou aktivně využívány. "
             f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
             f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do {profile['etf_label']}.",
+            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
         )
         detected.append({
             "key": "subscription_trap",
             "name": "Subskripční peklo – Subscription Trap",
-            "detail": f"{active_services} aktivních předplatných služeb",
+            "detail": "6+ nevyužívaných měsíčních plateb (Netflix, Spotify, SaaS, gym)",
             "ev_loss": ev_loss,
             "variance": variance,
         })
@@ -322,42 +320,40 @@ def _detect_spending_habits(risk_profile: str) -> list[dict]:
             sum(e.get("weekend_micro", 0) for e in weekend_entries) / len(weekend_entries)
             if weekend_entries else 550
         )
-        monthly_excess = round(avg_micro * 8)
-        ev_loss = max(monthly_excess * 12, 3_600)
-        variance = 0.0180
+        ev_loss  = 11_000
+        variance = 0.0018
         _log(
             "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Víkendové mikro-transakce – Impulsive Spending' "
-            f"(průměrně {round(avg_micro):,} Kč/víkendový den v impulzivních nákupech). "
+            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Víkendové mikro-transakce – Impulsive Spending'. "
+            f"Vysoká frekvence drobných nákupů o víkendech – průměrně {round(avg_micro):,} Kč/den "
+            f"(čerpací stanice, večerky, mikrotransakce). "
             f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
             f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje nastavení víkendového limitu a automatický převod úspory do {profile['etf_label']}.",
+            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
         )
         detected.append({
             "key": "weekend_micro",
             "name": "Víkendové mikro-transakce – Impulsive Spending",
-            "detail": f"průměrně {round(avg_micro):,} Kč na víkendový den",
+            "detail": f"průměrně {round(avg_micro):,} Kč/víkendový den (čerpací stanice, večerky)",
             "ev_loss": ev_loss,
             "variance": variance,
         })
 
     elif scenario == "overpaying":
-        monthly_overpay = round(INSURANCE_AMOUNT * 0.20 / 12)
-        ev_loss = monthly_overpay * 12
-        variance = 0.0008
+        ev_loss  = 9_200
+        variance = 0.0009
         _log(
             "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Neloajalita – Overpaying Inertia' "
-            f"(fixní příkazy pojistka/energie jsou o 20 % nad tržním průměrem, "
-            f"přeplatek ~{monthly_overpay:,} Kč/měsíc). "
+            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Neloajalita vůči energiím – Overpaying Inertia'. "
+            f"Fixní trvalé příkazy za pojištění a energie jsou o 20 % vyšší než průměr trhu. "
             f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
             f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje okamžité srovnání trhu a přesměrování úspory do {profile['etf_label']}.",
+            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
         )
         detected.append({
             "key": "overpaying",
-            "name": "Neloajalita – Overpaying Inertia",
-            "detail": f"přeplatek ~{monthly_overpay:,} Kč/měsíc oproti tržnímu průměru",
+            "name": "Neloajalita vůči energiím – Overpaying Inertia",
+            "detail": "fixní příkazy 20 % nad tržním průměrem (pojištění, energie)",
             "ev_loss": ev_loss,
             "variance": variance,
         })
@@ -402,40 +398,40 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
         sp500_amt = round(amount * 0.70)
         msci_amt  = amount - sp500_amt
         wm_msg = (
-            f"[Wealth Management 📈] Na základě vašeho dlouhého investičního horizontu (7+ let) "
-            f"a vysoké tolerance k riziku jsem ušetřených {amount:,} Kč zainvestoval následovně: "
-            f"{sp500_amt:,} Kč (70 %) směřuje do fondu iShares Core S&P 500 UCITS ETF, "
-            f"který kopíruje 500 největších amerických firem (Apple, Microsoft, Nvidia) "
-            f"pro maximální růstový potenciál. "
-            f"Zbylých {msci_amt:,} Kč (30 %) jsem alokoval do Amundi MSCI World ETF "
-            f"pro globální diverzifikaci napříč Evropou a Japonskem. "
-            f"Distribuce výnosů vašeho nového portfolia: "
-            f"Očekávaná hodnota E[X] = {ev:.1f} % p.a., Rozptyl Var(X) = {var:.4f}."
+            f"[Wealth Management 📈] Detekoval jsem dlouhý investiční horizont a vysokou odvahu "
+            f"riskovat. Vašich {amount:,} Kč jsem proto rozdělil takto:\n"
+            f"- {sp500_amt:,} Kč (70 %) investuji do iShares Core S&P 500 ETF. Tento fond nakupuje "
+            f"akcie 500 největších amerických firem. Vaše peníze tak nyní spoluvlastní giganty jako "
+            f"Apple, Microsoft, Nvidia a Google. Je to motor pro maximální dlouhodobý růst.\n"
+            f"- {msci_amt:,} Kč (30 %) dávám do Amundi MSCI World ETF. Tento fond investuje do "
+            f"tisíců firem napříč Evropou a Japonskem, abychom nespoléhali jen na Ameriku a snížili riziko.\n"
+            f"Statistika portfolia: Očekávaná hodnota E[X] = {ev:.1f} % p.a., Rozptyl Var(X) = {var:.4f}."
         )
     elif risk_profile == "vyvazeny":
         eq_amt   = round(amount * 0.50)
         bond_amt = amount - eq_amt
         wm_msg = (
-            f"[Wealth Management ⚖️] Vzhledem k vašemu střednímu horizontu (3–7 let) "
-            f"volím vyvážený přístup. Částku {amount:,} Kč rozděluji na "
-            f"{eq_amt:,} Kč (50 %) do Vanguard FTSE All-World ETF (akciový růst) "
-            f"a {bond_amt:,} Kč (50 %) do iShares Core Global Aggregate Bond ETF "
-            f"(stabilní dluhopisy, které tlumí případné propady trhu). "
-            f"Distribuce výnosů: Očekávaná hodnota E[X] = {ev:.1f} % p.a., "
-            f"Rozptyl Var(X) = {var:.4f}."
+            f"[Wealth Management ⚖️] Zvolil jste zlatou střední cestu (horizont 3–7 let). "
+            f"Částku {amount:,} Kč dělím přesně na polovinu:\n"
+            f"- {eq_amt:,} Kč (50 %) investuji do Vanguard FTSE All-World ETF. Tento fond obsahuje "
+            f"mix akcií z celého světa, který vám zajistí stabilní růst.\n"
+            f"- {bond_amt:,} Kč (50 %) posílám do iShares Core Global Aggregate Bond ETF. To je "
+            f"balík bezpečných vládních a firemních dluhopisů. Pokud akciové trhy začnou klesat, "
+            f"tyto dluhopisy budou fungovat jako polštář a ochrání váš účet před velkými propady.\n"
+            f"Statistika portfolia: Očekávaná hodnota E[X] = {ev:.1f} % p.a., Rozptyl Var(X) = {var:.4f}."
         )
     else:  # konzervativni
         bond_amt   = round(amount * 0.80)
         liquid_amt = amount - bond_amt
         wm_msg = (
-            f"[Wealth Management 🛡️] Jelikož preferujete maximální bezpečí a ochranu před inflací, "
-            f"částku {amount:,} Kč jsem alokoval ze 80 % ({bond_amt:,} Kč) do "
-            f"iShares EUR Ultrashort Bond ETF "
-            f"(vysoce bezpečné krátkodobé evropské dluhopisy) "
-            f"a 20 % ({liquid_amt:,} Kč) jsem přesunul na váš Spořicí účet Raiffeisenbank "
-            f"pro okamžitou likviditu. "
-            f"Distribuce výnosů: Očekávaná hodnota E[X] = {ev:.1f} % p.a., "
-            f"Rozptyl Var(X) = {var:.4f}."
+            f"[Wealth Management 🛡️] Vaší prioritou je bezpečí a ochrana před inflací bez riskování. "
+            f"Částku {amount:,} Kč ukládám takto:\n"
+            f"- {bond_amt:,} Kč (80 %) investuji do iShares EUR Ultrashort Bond ETF. Jde o nejbezpečnější "
+            f"krátkodobé evropské dluhopisy s minimálním kolísáním ceny.\n"
+            f"- {liquid_amt:,} Kč (20 %) přesouvám přímo na váš Spořicí účet v Raiffeisenbank. "
+            f"Tyto peníze nikam neuzamykám, zůstávají vám plně po ruce jako okamžitá rezerva, "
+            f"ale úročí se lepším úrokem.\n"
+            f"Statistika portfolia: Očekávaná hodnota E[X] = {ev:.1f} % p.a., Rozptyl Var(X) = {var:.4f}."
         )
 
     _log("wealth_management", wm_msg)
