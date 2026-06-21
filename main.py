@@ -784,7 +784,7 @@ def _build_expense_donut() -> dict:
             "excess_pct":        excess_pct,
             "monthly_savings":   habit_info["ev"] // 12,
             "etf_5yr_bonus":     _etf_5yr_gain(habit_info["ev"]),
-            "inflation_loss_5yr": _inflation_loss_5yr(habit_info["ev"]),
+            "inflation_loss_5yr": round(habit_info["ev"] * 0.12),
         }
 
     return {

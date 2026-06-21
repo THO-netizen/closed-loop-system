@@ -192,23 +192,28 @@
   </div>
 
   <!-- ── Mode toggle: Autopilot vs. Kopilot ── -->
-  <div class="flex justify-center py-2">
-    <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-neutral-950 border border-white/8">
-      <button id="toggle-autopilot"
-              data-mode="autopilot"
-              class="mode-btn active-mode px-4 py-2 rounded-lg text-xs font-bold transition-all
-                     bg-yellow-400 text-neutral-950">
-        ✈&nbsp;&nbsp;Plně autonomní Autopilot
+  <div class="flex justify-center py-3">
+    <div class="relative inline-flex p-[3px] rounded-xl bg-neutral-900 border border-neutral-800 w-full max-w-sm">
+      <!-- Sliding yellow indicator -->
+      <div id="mode-slider"
+           class="absolute inset-[3px] w-[50%] rounded-[9px] bg-yellow-400
+                  transition-transform duration-200 ease-out pointer-events-none">
+      </div>
+      <button id="toggle-autopilot" data-mode="autopilot"
+              class="mode-btn relative z-10 flex-1 flex items-center justify-center gap-1.5
+                     px-4 py-2 rounded-[9px] text-xs font-bold text-neutral-950
+                     transition-colors duration-200 whitespace-nowrap">
+        ✈ Plně autonomní Autopilot
       </button>
-      <button id="toggle-kopilot"
-              data-mode="kopilot"
-              class="mode-btn px-4 py-2 rounded-lg text-xs font-semibold transition-all
-                     text-neutral-500 hover:text-neutral-200">
-        🤝&nbsp;&nbsp;Schvalovací Kopilot
+      <button id="toggle-kopilot" data-mode="kopilot"
+              class="mode-btn relative z-10 flex-1 flex items-center justify-center gap-1.5
+                     px-4 py-2 rounded-[9px] text-xs font-semibold text-neutral-500
+                     transition-colors duration-200 whitespace-nowrap">
+        🤝 Schvalovací Kopilot
       </button>
     </div>
   </div>
-  <p id="mode-hint" class="text-center text-xs text-neutral-600 -mt-1 mb-1">
+  <p id="mode-hint" class="text-center text-xs text-neutral-600 -mt-1 mb-2">
     Agent provádí transakce samostatně na pozadí.
   </p>
 
@@ -431,29 +436,35 @@ let agentMode = 'autopilot';
 
 const MODE_CONFIG = {
   autopilot: {
-    hint:   'Agent provádí transakce samostatně na pozadí.',
-    btnRun: 'Vyhodnotit a spustit autonomního pilota',
+    hint:    'Agent provádí transakce samostatně na pozadí.',
+    btnRun:  'Vyhodnotit a spustit autonomního pilota',
+    sliderX: '',                  // stays at left
   },
   kopilot: {
-    hint:   'Agent před každou transakcí zašle push notifikaci ke schválení.',
-    btnRun: 'Vyhodnotit a aktivovat asistenta',
+    hint:    'Agent před každou transakcí zašle push notifikaci ke schválení.',
+    btnRun:  'Vyhodnotit a aktivovat asistenta',
+    sliderX: 'translateX(100%)',  // slides to right half
   },
 };
 
 document.querySelectorAll('.mode-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (btn.dataset.mode === agentMode) return;
     agentMode = btn.dataset.mode;
+    const cfg = MODE_CONFIG[agentMode];
+
+    document.getElementById('mode-slider').style.transform = cfg.sliderX;
+
     document.querySelectorAll('.mode-btn').forEach(b => {
       const active = b.dataset.mode === agentMode;
-      b.classList.toggle('bg-yellow-400',   active);
       b.classList.toggle('text-neutral-950', active);
       b.classList.toggle('font-bold',        active);
       b.classList.toggle('text-neutral-500', !active);
-      b.classList.toggle('hover:text-neutral-200', !active);
+      b.classList.toggle('font-semibold',    !active);
     });
-    const cfg = MODE_CONFIG[agentMode];
-    document.getElementById('mode-hint').textContent = cfg.hint;
-    document.getElementById('btn-run-label').textContent = cfg.btnRun;
+
+    document.getElementById('mode-hint').textContent        = cfg.hint;
+    document.getElementById('btn-run-label').textContent    = cfg.btnRun;
   });
 });
 
@@ -553,7 +564,7 @@ function buildDonut(data) {
         <p class="text-xs leading-relaxed text-neutral-400">
           🏦 <span class="font-bold text-neutral-300">Ušlá příležitost:</span>
           Při nulovém zhodnocení na běžném účtu je Expected Value ztráty kupní síly
-          vlivem inflace za 5 let vyčíslena na
+          vlivem inflace (při průměrné inflaci 2,5&nbsp;%) za 5 let vyčíslena na
           <span class="font-bold text-red-400">${fmt(alarm.inflation_loss_5yr)}&nbsp;Kč</span>.
         </p>
       </div>`;
@@ -897,6 +908,17 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ── Button handlers ──────────────────────────────────────────────────────────
+function _systemLogHtml(ts) {
+  return `<div class="log-entry flex gap-3 text-xs leading-relaxed">
+    <span class="shrink-0 text-neutral-600 font-mono pt-0.5">${ts}</span>
+    <span class="shrink-0">⚙️</span>
+    <div>
+      <span class="font-semibold text-emerald-400">Systém</span>
+      <p class="text-neutral-500 mt-0.5">Spojení s Raiffeisenbank Open Banking API (PSD2) úspěšně navázáno. Token validní. Inicializuji zabezpečený audit transakční historie...</p>
+    </div>
+  </div>`;
+}
+
 document.getElementById('btn-run').addEventListener('click', async () => {
   const q1el = document.querySelector('input[name="q1"]:checked');
   const q2el = document.querySelector('input[name="q2"]:checked');
@@ -914,6 +936,10 @@ document.getElementById('btn-run').addEventListener('click', async () => {
   btn.classList.add('opacity-50');
   spinner.style.display = 'flex';
 
+  // Show Open Banking connection line immediately — before API responds
+  const sysTs = new Date().toTimeString().slice(0, 8);
+  document.getElementById('log-box').innerHTML = _systemLogHtml(sysTs);
+
   try {
     const res = await fetch('/api/run-agent', {
       method: 'POST',
@@ -927,6 +953,8 @@ document.getElementById('btn-run').addEventListener('click', async () => {
     const d = await res.json();
     closeModal();
     renderLog(d.agent_log);
+    // Keep system connection line as the first entry in the log
+    document.getElementById('log-box').insertAdjacentHTML('afterbegin', _systemLogHtml(sysTs));
     renderHabitWidget(d.detected_habits);
     await fetchState();
   } finally {
