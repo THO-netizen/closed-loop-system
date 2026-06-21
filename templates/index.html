@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="cs" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autonomous Closed-Loop Banking</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root { --rb-yellow: #FFE000; }
+
+    body { background: #0a0a0a; }
+
+    .glass {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(12px);
+      transition: border-color .2s;
+    }
+    .glass:hover { border-color: rgba(255,224,0,0.18); }
+
+    .glow-yellow  { box-shadow: 0 0 28px rgba(255,224,0,0.12); }
+    .glow-neutral { box-shadow: 0 0 24px rgba(255,255,255,0.06); }
+    .glow-soft    { box-shadow: 0 0 24px rgba(255,224,0,0.07); }
+
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #FFE000;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.35; transform:scale(1.55); }
+    }
+
+    #log-box::-webkit-scrollbar { width: 4px; }
+    #log-box::-webkit-scrollbar-track { background: transparent; }
+    #log-box::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+    .log-entry { animation: fadeIn .4s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; } }
+
+    .stress-badge {
+      background: rgba(239,68,68,.12);
+      border: 1px solid rgba(239,68,68,.35);
+    }
+
+    /* Yellow accent on card value numbers */
+    .rb-value { color: #FFE000; }
+  </style>
+</head>
+<body class="min-h-full text-neutral-200 font-sans">
+
+<!-- ── Header ── -->
+<header class="border-b border-white/5 px-6 py-4 flex items-center gap-3 bg-black/60 backdrop-blur-sm">
+  <!-- RB-style triangle/diamond mark -->
+  <svg class="w-7 h-7" viewBox="0 0 28 28" fill="none">
+    <polygon points="14,2 26,26 2,26" fill="#FFE000"/>
+  </svg>
+  <span class="text-base font-bold tracking-tight text-white">Raiffeisen</span>
+  <span class="text-base font-light tracking-tight text-neutral-400">Closed-Loop Banking</span>
+  <span class="ml-auto flex items-center gap-2 text-xs text-neutral-500">
+    <span class="pulse-dot"></span> Live demo
+  </span>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+  <!-- ── Stress-test banner ── -->
+  <div id="stress-banner" class="hidden stress-badge rounded-xl px-5 py-3 flex items-center gap-3 text-red-300 text-sm">
+    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71
+           c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z
+           M12 15.75h.007v.008H12v-.008z"/>
+    </svg>
+    <span id="stress-text"></span>
+  </div>
+
+  <!-- ── Balance cards ── -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="glass rounded-2xl p-5 glow-yellow">
+      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1">Běžný účet</p>
+      <p id="card-checking" class="text-3xl font-bold rb-value">—</p>
+      <p class="text-xs text-neutral-600 mt-1">CZK</p>
+    </div>
+    <div class="glass rounded-2xl p-5 glow-neutral">
+      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1">Spořicí účet</p>
+      <p id="card-savings" class="text-3xl font-bold text-white">—</p>
+      <p class="text-xs text-neutral-600 mt-1">CZK</p>
+    </div>
+    <div class="glass rounded-2xl p-5 glow-soft">
+      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1">ETF Portfolio</p>
+      <p id="card-portfolio" class="text-3xl font-bold text-yellow-200">—</p>
+      <p id="card-units" class="text-xs text-neutral-600 mt-1">jednotky @ — Kč</p>
+    </div>
+  </div>
+
+  <!-- ── Chart ── -->
+  <div class="glass rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-semibold text-neutral-300">Cash Flow – 60 dní historie + 30 dní predikce</h2>
+      <div class="flex items-center gap-4 text-xs text-neutral-500">
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block w-3 h-0.5 bg-white/70 rounded"></span>Historie
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block w-3 h-0.5 rounded" style="background:#FFE000"></span>Predikce
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="inline-block w-3 h-0.5 bg-red-500 rounded"></span>Stress
+        </span>
+      </div>
+    </div>
+    <div class="relative h-72">
+      <canvas id="cashflow-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Agent controls + log ── -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Controls -->
+    <div class="glass rounded-2xl p-6 flex flex-col gap-4">
+      <h2 class="text-sm font-semibold text-neutral-300">Autonomní agent</h2>
+      <p class="text-xs text-neutral-500 leading-relaxed">
+        Agent analyzuje predikci cash flow, zohledňuje stress-test (pojistka) a
+        autonomně investuje / spořuje bezpečný přebytek přes function calling.
+      </p>
+      <button id="btn-run"
+        class="mt-auto w-full py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300
+               text-sm font-bold text-neutral-950 transition-colors flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+        </svg>
+        Spustit agenta
+      </button>
+      <button id="btn-reset"
+        class="w-full py-2 rounded-xl border border-white/8 text-xs text-neutral-500
+               hover:text-neutral-200 hover:border-yellow-400/30 transition-colors">
+        Resetovat stav
+      </button>
+      <div id="spinner" class="hidden flex-col items-center gap-2 py-2">
+        <svg class="animate-spin w-5 h-5" style="color:#FFE000" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        <span class="text-xs text-neutral-500">Agent pracuje…</span>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="lg:col-span-2 glass rounded-2xl p-6 flex flex-col gap-3">
+      <div class="flex items-center gap-2">
+        <span class="pulse-dot"></span>
+        <h2 class="text-sm font-semibold text-neutral-300">Real-time Log Autonomního Agenta</h2>
+      </div>
+      <div id="log-box"
+        class="flex-1 min-h-[220px] max-h-80 overflow-y-auto space-y-2 pr-1">
+        <p class="text-xs text-neutral-600 italic">Zatím žádné záznamy. Spusťte agenta →</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ── helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n) => new Intl.NumberFormat('cs-CZ').format(Math.round(n)) + ' Kč';
+const fmtDate = (s) => new Date(s).toLocaleDateString('cs-CZ', {day:'2-digit',month:'2-digit'});
+
+// ── Chart setup ──────────────────────────────────────────────────────────────
+const ctx = document.getElementById('cashflow-chart').getContext('2d');
+let chart = null;
+
+function buildChart(data) {
+  const { labels, history_balance, predicted_balance, stress_index } = data;
+  const histLen = history_balance.length;
+
+  const histSeries = [...history_balance, ...Array(predicted_balance.length).fill(null)];
+  const predSeries = [...Array(histLen - 1).fill(null), history_balance[histLen-1], ...predicted_balance];
+
+  const stressPlugin = {
+    id: 'stressLine',
+    afterDraw(chart) {
+      const idx = stress_index;
+      if (idx < 0 || idx >= labels.length) return;
+      const meta = chart.getDatasetMeta(1);
+      const pt = meta.data[idx];
+      if (!pt) return;
+      const { ctx, chartArea: { top, bottom } } = chart;
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(239,68,68,0.65)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6,4]);
+      ctx.moveTo(pt.x, top);
+      ctx.lineTo(pt.x, bottom);
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    plugins: [stressPlugin],
+    data: {
+      labels: labels.map(fmtDate),
+      datasets: [
+        {
+          label: 'Historie',
+          data: histSeries,
+          borderColor: 'rgba(255,255,255,0.65)',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.35,
+          fill: false,
+          spanGaps: false,
+        },
+        {
+          label: 'Predikce',
+          data: predSeries,
+          borderColor: '#FFE000',
+          borderWidth: 2.5,
+          borderDash: [6,4],
+          pointRadius: 0,
+          tension: 0.35,
+          fill: false,
+          spanGaps: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111111',
+          borderColor: 'rgba(255,224,0,0.2)',
+          borderWidth: 1,
+          titleColor: '#737373',
+          bodyColor: '#e5e5e5',
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${new Intl.NumberFormat('cs-CZ').format(Math.round(ctx.parsed.y))} Kč`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: '#404040', maxTicksLimit: 14, font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,0.03)' },
+        },
+        y: {
+          ticks: {
+            color: '#404040',
+            font: { size: 10 },
+            callback: (v) => new Intl.NumberFormat('cs-CZ', {notation:'compact'}).format(v) + ' Kč',
+          },
+          grid: { color: 'rgba(255,255,255,0.03)' },
+        },
+      },
+    },
+  });
+}
+
+// ── Log renderer ─────────────────────────────────────────────────────────────
+const ACTION_META = {
+  transfer_to_savings: { label: 'Převod na spoření',  color: 'text-neutral-200',  icon: '🏦' },
+  invest_funds:        { label: 'Investice ETF',       color: 'text-yellow-300',   icon: '📈' },
+  agent_thought:       { label: 'Analýza agenta',      color: 'text-neutral-300',  icon: '🤖' },
+  demo_analysis:       { label: 'Demo analýza',        color: 'text-neutral-300',  icon: '🔮' },
+  prediction:          { label: 'Predikce',            color: 'text-neutral-200',  icon: '🔭' },
+  execution:           { label: 'Exekuce',             color: 'text-yellow-400',   icon: '⚡' },
+  wealth_management:   { label: 'Wealth Management',   color: 'text-yellow-300',   icon: '🌱' },
+};
+
+function renderLog(entries) {
+  const box = document.getElementById('log-box');
+  if (!entries || entries.length === 0) {
+    box.innerHTML = '<p class="text-xs text-neutral-600 italic">Zatím žádné záznamy. Spusťte agenta →</p>';
+    return;
+  }
+  box.innerHTML = entries.map((e) => {
+    const meta = ACTION_META[e.action] || { label: e.action, color: 'text-neutral-300', icon: '•' };
+    const time = e.ts.split('T')[1]?.slice(0,8) ?? e.ts;
+    return `
+      <div class="log-entry flex gap-3 text-xs leading-relaxed">
+        <span class="shrink-0 text-neutral-600 font-mono pt-0.5">${time}</span>
+        <span class="shrink-0">${meta.icon}</span>
+        <div>
+          <span class="font-semibold ${meta.color}">${meta.label}</span>
+          ${e.amount > 0 ? `<span class="ml-1 text-neutral-500">(${fmt(e.amount)})</span>` : ''}
+          <p class="text-neutral-500 mt-0.5">${e.message}</p>
+        </div>
+      </div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── State fetch ──────────────────────────────────────────────────────────────
+async function fetchState() {
+  const res = await fetch('/api/state');
+  const d = await res.json();
+
+  document.getElementById('card-checking').textContent  = fmt(d.checking_balance);
+  document.getElementById('card-savings').textContent   = fmt(d.savings_balance);
+  document.getElementById('card-portfolio').textContent = fmt(d.portfolio_value);
+  document.getElementById('card-units').textContent =
+    `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
+
+  const banner = document.getElementById('stress-banner');
+  const txt    = document.getElementById('stress-text');
+  txt.textContent = `⚠ Stress-test: za ${d.insurance_due_days} dní splatná roční pojistka ${fmt(d.insurance_amount)} – agent to zohlednil v predikci.`;
+  banner.classList.remove('hidden');
+
+  buildChart(d.chart);
+  renderLog(d.agent_log);
+}
+
+// ── Button handlers ──────────────────────────────────────────────────────────
+document.getElementById('btn-run').addEventListener('click', async () => {
+  const btn     = document.getElementById('btn-run');
+  const spinner = document.getElementById('spinner');
+  btn.disabled = true;
+  btn.classList.add('opacity-50');
+  spinner.classList.remove('hidden');
+  spinner.classList.add('flex');
+
+  try {
+    const res = await fetch('/api/run-agent', { method: 'POST' });
+    const d   = await res.json();
+    renderLog(d.agent_log);
+    await fetchState();
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('opacity-50');
+    spinner.classList.add('hidden');
+    spinner.classList.remove('flex');
+  }
+});
+
+document.getElementById('btn-reset').addEventListener('click', async () => {
+  await fetch('/api/reset', { method: 'POST' });
+  await fetchState();
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+fetchState();
+</script>
+</body>
+</html>
