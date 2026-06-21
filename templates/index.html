@@ -17,7 +17,7 @@
       backdrop-filter: blur(12px);
       transition: border-color .2s;
     }
-    .glass:hover { border-color: rgba(255,224,0,0.18); }
+    .glass:hover { border-color: rgba(255,224,0,0.16); }
 
     .glow-yellow  { box-shadow: 0 0 28px rgba(255,224,0,0.12); }
     .glow-neutral { box-shadow: 0 0 24px rgba(255,255,255,0.06); }
@@ -27,6 +27,7 @@
       width: 8px; height: 8px; border-radius: 50%;
       background: #FFE000;
       animation: pulse 1.8s infinite;
+      flex-shrink: 0;
     }
     @keyframes pulse {
       0%,100% { opacity:1; transform:scale(1); }
@@ -44,17 +45,32 @@
       background: rgba(239,68,68,.12);
       border: 1px solid rgba(239,68,68,.35);
     }
-
-    /* Yellow accent on card value numbers */
     .rb-value { color: #FFE000; }
+
+    /* MiFID II questionnaire */
+    .q-card { transition: border-color .2s; }
+    .q-card:has(input[type="radio"]:checked) {
+      border-color: rgba(255,224,0,0.22) !important;
+    }
+    .q-option {
+      border: 1px solid transparent;
+      transition: background .15s, border-color .15s;
+    }
+    .q-option:has(input[type="radio"]:checked) {
+      background: rgba(255,224,0,0.07);
+      border-color: rgba(255,224,0,0.32) !important;
+    }
+    .q-option:not(:has(input:checked)):hover {
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,255,255,0.08);
+    }
   </style>
 </head>
 <body class="min-h-full text-neutral-200 font-sans">
 
 <!-- ── Header ── -->
-<header class="border-b border-white/5 px-6 py-4 flex items-center gap-3 bg-black/60 backdrop-blur-sm">
-  <!-- RB-style triangle/diamond mark -->
-  <svg class="w-7 h-7" viewBox="0 0 28 28" fill="none">
+<header class="border-b border-white/5 px-6 py-4 flex items-center gap-3 bg-black/60 backdrop-blur-sm sticky top-0 z-10">
+  <svg class="w-7 h-7 shrink-0" viewBox="0 0 28 28" fill="none">
     <polygon points="14,2 26,26 2,26" fill="#FFE000"/>
   </svg>
   <span class="text-base font-bold tracking-tight text-white">Raiffeisen</span>
@@ -98,7 +114,7 @@
 
   <!-- ── Chart ── -->
   <div class="glass rounded-2xl p-6">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
       <h2 class="text-sm font-semibold text-neutral-300">Cash Flow – 60 dní historie + 30 dní predikce</h2>
       <div class="flex items-center gap-4 text-xs text-neutral-500">
         <span class="flex items-center gap-1.5">
@@ -117,53 +133,198 @@
     </div>
   </div>
 
-  <!-- ── Agent controls + log ── -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- ── Analýza finančního chování ── -->
+  <div class="glass rounded-2xl p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div id="habit-indicator" class="w-3 h-3 rounded-full bg-neutral-600 shrink-0 transition-all duration-300"></div>
+      <h2 class="text-sm font-semibold text-neutral-300">Analýza finančního chování</h2>
+      <span id="habit-status-label" class="ml-auto text-xs text-neutral-500">Čeká na analýzu</span>
+    </div>
+    <div id="habit-widget-content">
+      <p class="text-xs text-neutral-600 italic">Spusťte agenta pro analýzu vzorců chování →</p>
+    </div>
+  </div>
 
-    <!-- Controls -->
-    <div class="glass rounded-2xl p-6 flex flex-col gap-4">
-      <h2 class="text-sm font-semibold text-neutral-300">Autonomní agent</h2>
-      <p class="text-xs text-neutral-500 leading-relaxed">
-        Agent analyzuje predikci cash flow, zohledňuje stress-test (pojistka) a
-        autonomně investuje / spořuje bezpečný přebytek přes function calling.
-      </p>
+  <!-- ── MiFID II Questionnaire ── -->
+  <div class="glass rounded-2xl p-6 space-y-6">
+
+    <!-- Header -->
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-yellow-400/10 border border-yellow-400/20
+                    flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 text-yellow-400" fill="none" viewBox="0 0 24 24"
+               stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108
+                 c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0
+                 c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75
+                 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0
+                 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01
+                 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25
+                 c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375
+                 c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0
+                 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-white tracking-tight">MiFID II Investiční dotazník</h2>
+          <p class="text-xs text-neutral-500 mt-0.5">Suitability assessment · Směrnice MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body</p>
+        </div>
+      </div>
+      <!-- Score preview badge (appears after all 3 answered) -->
+      <div id="score-badge"
+           style="display:none"
+           class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neutral-900
+                  border border-white/10 text-xs whitespace-nowrap">
+      </div>
+    </div>
+
+    <!-- 3 Questions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <!-- Q1 -->
+      <div class="q-card rounded-xl bg-black/40 border border-white/6 p-4 space-y-3">
+        <div class="flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
+                       flex items-center justify-center shrink-0 mt-0.5">1</span>
+          <p class="text-xs font-semibold text-neutral-200 leading-snug">
+            Jaký je váš investiční horizont?
+          </p>
+        </div>
+        <div class="space-y-1.5">
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q1" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">A</span> — Méně než 3 roky
+            </span>
+          </label>
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q1" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">B</span> — 3–7 let
+            </span>
+          </label>
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q1" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">C</span> — Více než 7 let
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q-card rounded-xl bg-black/40 border border-white/6 p-4 space-y-3">
+        <div class="flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
+                       flex items-center justify-center shrink-0 mt-0.5">2</span>
+          <p class="text-xs font-semibold text-neutral-200 leading-snug">
+            Jaký pokles portfolia byste unesl/a bez paniky?
+          </p>
+        </div>
+        <div class="space-y-1.5">
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q2" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">A</span> — Max 5 %
+            </span>
+          </label>
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q2" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">B</span> — Do 15 %
+            </span>
+          </label>
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q2" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">C</span> — Více než 20 % pro maximalizaci zisku
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="q-card rounded-xl bg-black/40 border border-white/6 p-4 space-y-3">
+        <div class="flex items-start gap-2.5">
+          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
+                       flex items-center justify-center shrink-0 mt-0.5">3</span>
+          <p class="text-xs font-semibold text-neutral-200 leading-snug">
+            Jaké jsou vaše zkušenosti s investováním?
+          </p>
+        </div>
+        <div class="space-y-1.5">
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q3" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">A</span> — Žádné
+            </span>
+          </label>
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q3" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">B</span> — Mám spořicí účty a podílové fondy
+            </span>
+          </label>
+          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
+            <input type="radio" name="q3" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
+            <span class="text-xs text-neutral-400 leading-snug">
+              <span class="font-semibold text-neutral-300">C</span> — Obchoduji akcie / ETF
+            </span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Validation error -->
+    <p id="q-error" class="hidden text-xs text-red-400">
+      ⚠ Prosím, odpovězte na všechny 3 otázky před spuštěním agenta.
+    </p>
+
+    <!-- Action row -->
+    <div class="flex flex-col sm:flex-row items-center gap-3 pt-1">
       <button id="btn-run"
-        class="mt-auto w-full py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300
-               text-sm font-bold text-neutral-950 transition-colors flex items-center justify-center gap-2">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        class="w-full sm:flex-1 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300
+               text-sm font-bold text-neutral-950 transition-colors
+               flex items-center justify-center gap-2">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round"
-            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010
+               1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
         </svg>
-        Spustit agenta
+        Vyhodnotit a spustit agenta
       </button>
       <button id="btn-reset"
-        class="w-full py-2 rounded-xl border border-white/8 text-xs text-neutral-500
+        class="w-full sm:w-44 py-2.5 rounded-xl border border-white/8 text-xs text-neutral-500
                hover:text-neutral-200 hover:border-yellow-400/30 transition-colors">
         Resetovat stav
       </button>
-      <div id="spinner" class="hidden flex-col items-center gap-2 py-2">
+      <div id="spinner" class="hidden items-center gap-2 shrink-0 py-1">
         <svg class="animate-spin w-5 h-5" style="color:#FFE000" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
-        <span class="text-xs text-neutral-500">Agent pracuje…</span>
-      </div>
-    </div>
-
-    <!-- Log -->
-    <div class="lg:col-span-2 glass rounded-2xl p-6 flex flex-col gap-3">
-      <div class="flex items-center gap-2">
-        <span class="pulse-dot"></span>
-        <h2 class="text-sm font-semibold text-neutral-300">Real-time Log Autonomního Agenta</h2>
-      </div>
-      <div id="log-box"
-        class="flex-1 min-h-[220px] max-h-80 overflow-y-auto space-y-2 pr-1">
-        <p class="text-xs text-neutral-600 italic">Zatím žádné záznamy. Spusťte agenta →</p>
+        <span class="text-xs text-neutral-500 whitespace-nowrap">Agent pracuje…</span>
       </div>
     </div>
 
   </div>
+
+  <!-- ── Agent Log ── -->
+  <div class="glass rounded-2xl p-6 flex flex-col gap-3">
+    <div class="flex items-center gap-2">
+      <span class="pulse-dot"></span>
+      <h2 class="text-sm font-semibold text-neutral-300">Real-time Log Autonomního Agenta</h2>
+    </div>
+    <div id="log-box" class="min-h-[200px] max-h-96 overflow-y-auto space-y-2 pr-1">
+      <p class="text-xs text-neutral-600 italic">Vyplňte MiFID II dotazník a spusťte agenta →</p>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -195,12 +356,12 @@ function buildChart(data) {
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(239,68,68,0.65)';
       ctx.lineWidth = 2;
-      ctx.setLineDash([6,4]);
+      ctx.setLineDash([6, 4]);
       ctx.moveTo(pt.x, top);
       ctx.lineTo(pt.x, bottom);
       ctx.stroke();
       ctx.restore();
-    }
+    },
   };
 
   if (chart) chart.destroy();
@@ -225,7 +386,7 @@ function buildChart(data) {
           data: predSeries,
           borderColor: '#FFE000',
           borderWidth: 2.5,
-          borderDash: [6,4],
+          borderDash: [6, 4],
           pointRadius: 0,
           tension: 0.35,
           fill: false,
@@ -246,7 +407,7 @@ function buildChart(data) {
           titleColor: '#737373',
           bodyColor: '#e5e5e5',
           callbacks: {
-            label: (ctx) => ` ${ctx.dataset.label}: ${new Intl.NumberFormat('cs-CZ').format(Math.round(ctx.parsed.y))} Kč`,
+            label: (c) => ` ${c.dataset.label}: ${new Intl.NumberFormat('cs-CZ').format(Math.round(c.parsed.y))} Kč`,
           },
         },
       },
@@ -259,7 +420,7 @@ function buildChart(data) {
           ticks: {
             color: '#404040',
             font: { size: 10 },
-            callback: (v) => new Intl.NumberFormat('cs-CZ', {notation:'compact'}).format(v) + ' Kč',
+            callback: (v) => new Intl.NumberFormat('cs-CZ', { notation: 'compact' }).format(v) + ' Kč',
           },
           grid: { color: 'rgba(255,255,255,0.03)' },
         },
@@ -268,26 +429,70 @@ function buildChart(data) {
   });
 }
 
+// ── Habit widget renderer ────────────────────────────────────────────────────
+function renderHabitWidget(habits) {
+  const indicator = document.getElementById('habit-indicator');
+  const label     = document.getElementById('habit-status-label');
+  const content   = document.getElementById('habit-widget-content');
+
+  if (habits === null || habits === undefined) {
+    indicator.className = 'w-3 h-3 rounded-full bg-neutral-600 shrink-0 transition-all duration-300';
+    label.textContent   = 'Čeká na analýzu';
+    label.className     = 'ml-auto text-xs text-neutral-500';
+    content.innerHTML   = '<p class="text-xs text-neutral-600 italic">Spusťte agenta pro analýzu vzorců chování →</p>';
+    return;
+  }
+  if (habits.length === 0) {
+    indicator.className = 'w-3 h-3 rounded-full bg-green-500 shrink-0 transition-all duration-300';
+    label.textContent   = 'Zdravé finance';
+    label.className     = 'ml-auto text-xs text-green-400 font-semibold';
+    content.innerHTML   = '<p class="text-xs text-neutral-500">Nebyly detekovány žádné rizikové vzorce chování. ✅</p>';
+    return;
+  }
+  indicator.className = 'w-3 h-3 rounded-full bg-orange-400 shrink-0 transition-all duration-300 animate-pulse';
+  label.textContent   = habits.length > 1 ? `Detekováno ${habits.length} zlozvyky` : 'Detekován zlozvyk';
+  label.className     = 'ml-auto text-xs text-orange-400 font-semibold';
+  content.innerHTML   = habits.map(h => `
+    <div class="mt-2 bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 space-y-2">
+      <div class="flex items-center gap-2">
+        <span class="text-sm">⚠️</span>
+        <span class="text-xs font-bold text-orange-300">${h.name}</span>
+      </div>
+      <p class="text-xs text-neutral-400">${h.detail}</p>
+      <div class="flex gap-6 pt-1">
+        <div>
+          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">E[Ztráta / 12M]</p>
+          <p class="text-sm font-bold text-red-400">${fmt(h.ev_loss)}</p>
+        </div>
+        <div>
+          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">Variance</p>
+          <p class="text-sm font-bold text-orange-400">${h.variance.toFixed(4)}</p>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
 // ── Log renderer ─────────────────────────────────────────────────────────────
 const ACTION_META = {
-  transfer_to_savings: { label: 'Převod na spoření',  color: 'text-neutral-200',  icon: '🏦' },
-  invest_funds:        { label: 'Investice ETF',       color: 'text-yellow-300',   icon: '📈' },
-  agent_thought:       { label: 'Analýza agenta',      color: 'text-neutral-300',  icon: '🤖' },
-  demo_analysis:       { label: 'Demo analýza',        color: 'text-neutral-300',  icon: '🔮' },
-  prediction:          { label: 'Predikce',            color: 'text-neutral-200',  icon: '🔭' },
-  execution:           { label: 'Exekuce',             color: 'text-yellow-400',   icon: '⚡' },
-  wealth_management:   { label: 'Wealth Management',   color: 'text-yellow-300',   icon: '🌱' },
+  transfer_to_savings: { label: 'Převod na spoření',   color: 'text-neutral-200',  icon: '🏦' },
+  invest_funds:        { label: 'Investice ETF',        color: 'text-yellow-300',   icon: '📈' },
+  agent_thought:       { label: 'Analýza agenta',       color: 'text-neutral-300',  icon: '🤖' },
+  prediction:          { label: 'Predikce',             color: 'text-neutral-200',  icon: '🔭' },
+  execution:           { label: 'Exekuce',              color: 'text-yellow-400',   icon: '⚡' },
+  wealth_management:   { label: 'Wealth Management',    color: 'text-yellow-300',   icon: '🌱' },
+  spending_warning:    { label: 'Varování: Výdaje',     color: 'text-red-400',      icon: '⚠️' },
+  mifid_result:        { label: 'MiFID II Profil',      color: 'text-yellow-400',   icon: '📋' },
 };
 
 function renderLog(entries) {
   const box = document.getElementById('log-box');
   if (!entries || entries.length === 0) {
-    box.innerHTML = '<p class="text-xs text-neutral-600 italic">Zatím žádné záznamy. Spusťte agenta →</p>';
+    box.innerHTML = '<p class="text-xs text-neutral-600 italic">Vyplňte MiFID II dotazník a spusťte agenta →</p>';
     return;
   }
   box.innerHTML = entries.map((e) => {
     const meta = ACTION_META[e.action] || { label: e.action, color: 'text-neutral-300', icon: '•' };
-    const time = e.ts.split('T')[1]?.slice(0,8) ?? e.ts;
+    const time = e.ts.split('T')[1]?.slice(0, 8) ?? e.ts;
     return `
       <div class="log-entry flex gap-3 text-xs leading-relaxed">
         <span class="shrink-0 text-neutral-600 font-mono pt-0.5">${time}</span>
@@ -313,39 +518,96 @@ async function fetchState() {
   document.getElementById('card-units').textContent =
     `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
 
-  const banner = document.getElementById('stress-banner');
-  const txt    = document.getElementById('stress-text');
-  txt.textContent = `⚠ Stress-test: za ${d.insurance_due_days} dní splatná roční pojistka ${fmt(d.insurance_amount)} – agent to zohlednil v predikci.`;
-  banner.classList.remove('hidden');
+  document.getElementById('stress-text').textContent =
+    `⚠ Stress-test: za ${d.insurance_due_days} dní splatná roční pojistka ${fmt(d.insurance_amount)} – agent to zohlednil v predikci.`;
+  document.getElementById('stress-banner').classList.remove('hidden');
 
   buildChart(d.chart);
   renderLog(d.agent_log);
+  renderHabitWidget(d.detected_habits);
 }
+
+// ── MiFID II score preview ────────────────────────────────────────────────────
+const PROFILE_UI = {
+  konzervativni: { label: 'Konzervativní', cls: 'text-sky-400' },
+  vyvazeny:      { label: 'Vyvážený',      cls: 'text-yellow-400' },
+  dynamicky:     { label: 'Dynamický',     cls: 'text-orange-400' },
+};
+
+function scoreToKey(s) {
+  return s <= 4 ? 'konzervativni' : s <= 7 ? 'vyvazeny' : 'dynamicky';
+}
+
+function updateScoreBadge() {
+  const v1 = parseInt(document.querySelector('input[name="q1"]:checked')?.value ?? 0);
+  const v2 = parseInt(document.querySelector('input[name="q2"]:checked')?.value ?? 0);
+  const v3 = parseInt(document.querySelector('input[name="q3"]:checked')?.value ?? 0);
+  const badge = document.getElementById('score-badge');
+
+  if (!v1 || !v2 || !v3) { badge.style.display = 'none'; return; }
+
+  const score = v1 + v2 + v3;
+  const p = PROFILE_UI[scoreToKey(score)];
+  badge.innerHTML =
+    `Skóre: <span class="font-bold text-white mx-1">${score}/9</span>→ <span class="${p.cls} font-bold ml-1">${p.label}</span>`;
+  badge.style.display = 'flex';
+  document.getElementById('q-error').classList.add('hidden');
+}
+
+document.querySelectorAll('input[name="q1"], input[name="q2"], input[name="q3"]')
+  .forEach((r) => r.addEventListener('change', updateScoreBadge));
 
 // ── Button handlers ──────────────────────────────────────────────────────────
 document.getElementById('btn-run').addEventListener('click', async () => {
+  const q1el = document.querySelector('input[name="q1"]:checked');
+  const q2el = document.querySelector('input[name="q2"]:checked');
+  const q3el = document.querySelector('input[name="q3"]:checked');
+
+  if (!q1el || !q2el || !q3el) {
+    document.getElementById('q-error').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('q-error').classList.add('hidden');
+
   const btn     = document.getElementById('btn-run');
   const spinner = document.getElementById('spinner');
   btn.disabled = true;
   btn.classList.add('opacity-50');
-  spinner.classList.remove('hidden');
-  spinner.classList.add('flex');
+  spinner.style.display = 'flex';
 
   try {
-    const res = await fetch('/api/run-agent', { method: 'POST' });
-    const d   = await res.json();
+    const res = await fetch('/api/run-agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        q1: parseInt(q1el.value),
+        q2: parseInt(q2el.value),
+        q3: parseInt(q3el.value),
+      }),
+    });
+    const d = await res.json();
     renderLog(d.agent_log);
+    renderHabitWidget(d.detected_habits);
     await fetchState();
   } finally {
     btn.disabled = false;
     btn.classList.remove('opacity-50');
-    spinner.classList.add('hidden');
-    spinner.classList.remove('flex');
+    spinner.style.display = 'none';
   }
 });
 
 document.getElementById('btn-reset').addEventListener('click', async () => {
-  await fetch('/api/reset', { method: 'POST' });
+  const res = await fetch('/api/reset', { method: 'POST' });
+  const d   = await res.json();
+  // Paint all cards immediately from reset response — no wait for fetchState
+  document.getElementById('card-checking').textContent  = fmt(d.checking_balance);
+  document.getElementById('card-savings').textContent   = fmt(d.savings_balance);
+  document.getElementById('card-portfolio').textContent = fmt(d.portfolio_value);
+  document.getElementById('card-units').textContent     =
+    `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
+  document.getElementById('score-badge').style.display = 'none';
+  renderHabitWidget(null);
+  renderLog([]);
   await fetchState();
 });
 
