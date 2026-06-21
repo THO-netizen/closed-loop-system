@@ -54,6 +54,25 @@ HABIT_META: dict[str, dict] = {
 }
 
 # ---------------------------------------------------------------------------
+# Expense donut – category definitions for Revolut-style doughnut chart
+# ---------------------------------------------------------------------------
+_EXPENSE_CATS = [
+    {"key": "housing",       "label": "Bydlení",    "pct": 40, "limit": 40, "color": "#3A4A5C"},
+    {"key": "energy",        "label": "Energie",    "pct": 15, "limit": 15, "color": "#7B5EA7"},
+    {"key": "gastro",        "label": "Gastro",     "pct": 15, "limit": 12, "color": "#FF6B35"},
+    {"key": "subscriptions", "label": "Subskripce", "pct": 10, "limit":  8, "color": "#4A90D9"},
+    {"key": "other",         "label": "Ostatní",    "pct": 20, "limit": 15, "color": "#6E6E73"},
+]
+
+# Maps each habit scenario → (alarmed_category_key, percentage_boost)
+_HABIT_TO_CAT: dict[str, tuple[str, int]] = {
+    "gastro_creep":      ("gastro",        12),
+    "subscription_trap": ("subscriptions", 14),
+    "weekend_micro":     ("other",         12),
+    "overpaying":        ("energy",        10),
+}
+
+# ---------------------------------------------------------------------------
 # Risk profiles – MiFID II aligned, with distributional parameters
 # ---------------------------------------------------------------------------
 RISK_PROFILES: dict[str, dict] = {
@@ -496,6 +515,163 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
 
 
 # ---------------------------------------------------------------------------
+# Chart story – annotates key balance events with human-readable explanations
+# ---------------------------------------------------------------------------
+def _build_chart_story() -> dict:
+    history    = _state.get("history", [])
+    prediction = _state.get("prediction", [])
+    last_60    = history[-60:] if len(history) >= 60 else history
+    hist_len   = len(last_60)
+    habit_info = _state.get("habit_info")
+
+    def _czk(v: float) -> str:
+        return f"{int(round(v)):,}".replace(",", " ") + " Kč"
+
+    # ── History events ──────────────────────────────────────────────────────
+    history_events: list[dict] = []
+
+    salary_hits = [(i, e) for i, e in enumerate(last_60) if e["income"] > 0]
+    if salary_hits:
+        idx, entry = salary_hits[-1]
+        history_events.append({
+            "chart_index": idx,
+            "date":        entry["date"],
+            "type":        "income",
+            "label":       "Výplata",
+            "amount":      entry["income"],
+            "text": (
+                f"Na účet dorazila pravidelná měsíční mzda {_czk(entry['income'])}. "
+                f"Zůstatek vzrostl na {_czk(entry['balance'])}."
+            ),
+        })
+
+    big_idx = max(range(len(last_60)), key=lambda i: last_60[i]["expense"])
+    big     = last_60[big_idx]
+    habit_short = (
+        HABIT_META[habit_info["scenario"]]["name"].split(" – ")[0]
+        if habit_info else "Výdaje"
+    )
+    history_events.append({
+        "chart_index": big_idx,
+        "date":        big["date"],
+        "type":        "expense",
+        "label":       "Výdajový vrchol",
+        "amount":      big["expense"],
+        "text": (
+            f"Odchod pravidelných plateb {_czk(big['expense'])} "
+            f"(nájemné, energie). Detekovaný zlozvyk: {habit_short}. "
+            f"Zůstatek klesl na {_czk(big['balance'])}."
+        ),
+    })
+
+    # ── Prediction events ────────────────────────────────────────────────────
+    prediction_events: list[dict] = []
+
+    stress_idx = next((i for i, e in enumerate(prediction) if e.get("is_stress")), None)
+    if stress_idx is not None:
+        se = prediction[stress_idx]
+        prediction_events.append({
+            "chart_index": hist_len + stress_idx,
+            "date":        se["date"],
+            "type":        "stress",
+            "label":       "Stress-test",
+            "amount":      INSURANCE_AMOUNT,
+            "text": (
+                f"Predikovaný stress-test: blíží se roční pojistka {_czk(INSURANCE_AMOUNT)}. "
+                f"Predikovaný zůstatek po platbě: {_czk(se['balance'])}."
+            ),
+        })
+
+    # Agent intervention – a few days after the insurance stress event
+    agent_pred_idx = min(INSURANCE_DUE_DAYS + 2, len(prediction) - 1)
+    ae             = prediction[agent_pred_idx]
+    post_surplus   = max(0.0, ae.get("surplus", 0.0))
+    prediction_events.append({
+        "chart_index": hist_len + agent_pred_idx,
+        "date":        ae["date"],
+        "type":        "agent",
+        "label":       "AI Autopilot",
+        "amount":      SIMULATION_AMOUNT,
+        "text": (
+            f"AI Autopilot detekoval bezpečný přebytek {_czk(post_surplus)} "
+            f"po splatnosti pojistky. Odklání {_czk(SIMULATION_AMOUNT)} do ETF portfolia – "
+            f"snižuje zůstatek běžného účtu, ale buduje růstovou vrstvu majetku."
+        ),
+    })
+
+    return {
+        "history_events":    history_events,
+        "prediction_events": prediction_events,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Expense donut – Revolut-style spending breakdown with AI alarm
+# ---------------------------------------------------------------------------
+def _etf_5yr_gain(ev_annual: float, annual_return: float = 0.095) -> int:
+    """Compound growth on redirected monthly savings over 5 years minus principal."""
+    monthly_pmt = ev_annual / 12
+    monthly_r   = annual_return / 12
+    fv          = monthly_pmt * ((1 + monthly_r) ** 60 - 1) / monthly_r
+    return int(fv - monthly_pmt * 60)
+
+
+def _build_expense_donut() -> dict:
+    history    = _state.get("history", [])
+    habit_info = _state.get("habit_info")
+
+    last_30       = history[-30:] if len(history) >= 30 else history
+    total_expense = int(sum(e["expense"] for e in last_30))
+
+    # Start from base percentages; apply habit boost to the relevant category
+    pcts      = {c["key"]: c["pct"] for c in _EXPENSE_CATS}
+    alarm_key = None
+    if habit_info:
+        cat_key, boost = _HABIT_TO_CAT.get(habit_info["scenario"], (None, 0))
+        if cat_key:
+            alarm_key        = cat_key
+            pcts[cat_key]   += boost
+            reduce_key       = "other" if cat_key != "other" else "housing"
+            pcts[reduce_key] = max(5, pcts[reduce_key] - boost)
+            diff             = 100 - sum(pcts.values())
+            pcts[reduce_key] += diff  # normalise to exactly 100 %
+
+    segments: list[dict] = []
+    for cat in _EXPENSE_CATS:
+        k        = cat["key"]
+        pct      = pcts[k]
+        is_alarm = k == alarm_key
+        segments.append({
+            "key":      k,
+            "label":    cat["label"],
+            "pct":      pct,
+            "amount":   round(total_expense * pct / 100),
+            "color":    "#FF9500" if is_alarm else cat["color"],
+            "is_alarm": is_alarm,
+            "offset":   15 if is_alarm else 0,
+        })
+
+    alarm_payload = None
+    if alarm_key and habit_info:
+        alarm_cat  = next(c for c in _EXPENSE_CATS if c["key"] == alarm_key)
+        alarm_seg  = next(s for s in segments if s["key"] == alarm_key)
+        excess_pct = max(0, alarm_seg["pct"] - alarm_cat["limit"])
+        alarm_payload = {
+            "category":        alarm_seg["label"],
+            "current_pct":     alarm_seg["pct"],
+            "excess_pct":      excess_pct,
+            "monthly_savings": habit_info["ev"] // 12,
+            "etf_5yr_bonus":   _etf_5yr_gain(habit_info["ev"]),
+        }
+
+    return {
+        "total_expense": total_expense,
+        "segments":      segments,
+        "alarm":         alarm_payload,
+    }
+
+
+# ---------------------------------------------------------------------------
 # API endpoints
 # ---------------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
@@ -525,6 +701,8 @@ async def get_state():
             "predicted_balance": [e["balance"] for e in prediction],
             "stress_index": len(history[-60:]) + INSURANCE_DUE_DAYS - 1,
         },
+        "chart_story":    _build_chart_story(),
+        "expense_donut":  _build_expense_donut(),
     })
 
 

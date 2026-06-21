@@ -131,6 +131,63 @@
     <div class="relative h-72">
       <canvas id="cashflow-chart"></canvas>
     </div>
+
+    <!-- ── Cash Flow Story Panel ── -->
+    <div id="story-panel" class="mt-5 pt-4 border-t border-white/5">
+      <h3 class="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+        <svg class="w-3.5 h-3.5 text-yellow-400 shrink-0" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987
+               0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0
+               2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/>
+        </svg>
+        Příběh vašeho Cash Flow
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- Historic milestones -->
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="inline-block w-6 h-px bg-white/40 rounded"></span>
+            <span class="text-xs text-neutral-600 uppercase tracking-widest">Historické milníky</span>
+          </div>
+          <div id="story-history" class="space-y-2">
+            <p class="text-xs text-neutral-700 italic">Načítám milníky...</p>
+          </div>
+        </div>
+        <!-- Prediction events -->
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="inline-block w-6 h-px rounded" style="background:#FFE000;opacity:0.5"></span>
+            <span class="text-xs text-neutral-600 uppercase tracking-widest">Predikovaný vývoj</span>
+          </div>
+          <div id="story-prediction" class="space-y-2">
+            <p class="text-xs text-neutral-700 italic">Načítám predikce...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Expense Donut (Revolut-style) ── -->
+  <div class="glass rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-sm font-semibold text-neutral-300">Struktura měsíčních výdajů</h2>
+      <span class="text-xs text-neutral-600 uppercase tracking-widest">posledních 30 dní</span>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+      <!-- Donut canvas – fixed square so Chart.js keeps aspect ratio -->
+      <div class="shrink-0 relative mx-auto md:mx-0" style="width:220px;height:220px;">
+        <canvas id="donut-chart"></canvas>
+      </div>
+
+      <!-- Legend + AI insights -->
+      <div class="flex-1 w-full min-w-0 space-y-4">
+        <div id="donut-legend" class="space-y-0"></div>
+        <div id="donut-alarm"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Analýza finančního chování ── -->
@@ -363,38 +420,168 @@ const fmtDate = (s) => new Date(s).toLocaleDateString('cs-CZ', {day:'2-digit',mo
 const ctx = document.getElementById('cashflow-chart').getContext('2d');
 let chart = null;
 
-function buildChart(data) {
-  const { labels, history_balance, predicted_balance, stress_index } = data;
+// ── Expense donut setup ───────────────────────────────────────────────────────
+const donutCtx = document.getElementById('donut-chart').getContext('2d');
+let donutChart = null;
+
+function buildDonut(data) {
+  if (!data) return;
+  const { total_expense, segments, alarm } = data;
+
+  const centerPlugin = {
+    id: 'donutCenter',
+    afterDraw(ch) {
+      const { ctx: c, chartArea: { left, right, top, bottom } } = ch;
+      const cx = (left + right) / 2;
+      const cy = (top  + bottom) / 2;
+      c.save();
+      c.textAlign    = 'center';
+      c.textBaseline = 'middle';
+
+      const amtStr = new Intl.NumberFormat('cs-CZ').format(total_expense) + ' Kč';
+      c.font      = 'bold 17px system-ui,-apple-system,sans-serif';
+      c.fillStyle = '#ffffff';
+      c.fillText(amtStr, cx, cy - 10);
+
+      c.font      = '11px system-ui,-apple-system,sans-serif';
+      c.fillStyle = '#6B7280';
+      c.fillText('Celkové výdaje', cx, cy + 10);
+      c.restore();
+    },
+  };
+
+  if (donutChart) donutChart.destroy();
+  donutChart = new Chart(donutCtx, {
+    type: 'doughnut',
+    plugins: [centerPlugin],
+    data: {
+      labels: segments.map(s => s.label),
+      datasets: [{
+        data:             segments.map(s => s.pct),
+        backgroundColor:  segments.map(s => s.color),
+        borderColor:      '#0a0a0a',
+        borderWidth:      3,
+        offset:           segments.map(s => s.offset),
+        hoverOffset:      8,
+        hoverBorderWidth: 3,
+      }],
+    },
+    options: {
+      cutout: '82%',
+      responsive:           true,
+      maintainAspectRatio:  true,
+      animation:            { duration: 600, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#111111',
+          borderColor:     'rgba(255,224,0,0.2)',
+          borderWidth:     1,
+          titleColor:      '#ffffff',
+          bodyColor:       '#9CA3AF',
+          callbacks: {
+            label: (c) => {
+              const s = segments[c.dataIndex];
+              return ` ${s.label}: ${s.pct} % (${fmt(s.amount)})`;
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // ── Legend ──────────────────────────────────────────────────────────────────
+  document.getElementById('donut-legend').innerHTML = segments.map((s, i) => `
+    <div class="flex items-center justify-between gap-3 py-2 ${i > 0 ? 'border-t border-white/4' : ''}">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="inline-block w-2.5 h-2.5 rounded-full shrink-0" style="background:${s.color}"></span>
+        <span class="text-xs text-neutral-300 truncate">${s.label}</span>
+        ${s.is_alarm ? '<span class="text-xs text-orange-400 shrink-0">⚠</span>' : ''}
+      </div>
+      <div class="flex items-center gap-3 shrink-0 tabular-nums">
+        <span class="text-xs font-bold ${s.is_alarm ? 'text-orange-400' : 'text-neutral-400'}">${s.pct} %</span>
+        <span class="text-xs text-neutral-700">${fmt(s.amount)}</span>
+      </div>
+    </div>`).join('');
+
+  // ── AI Alarm panel ───────────────────────────────────────────────────────────
+  const alarmEl = document.getElementById('donut-alarm');
+  if (alarm) {
+    alarmEl.innerHTML = `
+      <div class="rounded-xl border border-orange-500/25 bg-orange-500/5 p-3.5 space-y-2.5">
+        <p class="text-xs leading-relaxed text-orange-300">
+          ⚠️ <span class="font-bold">AI Alarm:</span>
+          Segment <span class="font-bold">[${alarm.category}]</span>
+          tvoří <span class="font-bold">${alarm.current_pct}&nbsp;%</span> vašich výdajů.
+          Limit pro zdravé finance překročen
+          o <span class="font-bold">${alarm.excess_pct}&nbsp;%</span>.
+        </p>
+        <p class="text-xs leading-relaxed text-neutral-400">
+          💡 <span class="font-bold text-neutral-300">Akční plán:</span>
+          Zrušením nevyužívaných služeb ušetříte přesně
+          <span class="font-semibold text-white">${fmt(alarm.monthly_savings)}&nbsp;měsíčně</span>.
+        </p>
+        <p class="text-xs leading-relaxed text-neutral-400">
+          📈 <span class="font-bold text-neutral-300">Optimalizace:</span>
+          Přesměrováním této částky do vašeho iShares S&amp;P&nbsp;500 ETF vzroste
+          očekávaná hodnota vašeho majetku za 5 let o
+          <span class="font-bold text-yellow-400">${fmt(alarm.etf_5yr_bonus)}</span>.
+        </p>
+      </div>`;
+  } else {
+    alarmEl.innerHTML = `
+      <p class="text-xs text-green-400">
+        ✅ Struktura výdajů v normě. Žádná kategorie nepřekračuje doporučené limity.
+      </p>`;
+  }
+}
+
+function buildChart(data, story) {
+  const { labels, history_balance, predicted_balance } = data;
   const histLen = history_balance.length;
 
   const histSeries = [...history_balance, ...Array(predicted_balance.length).fill(null)];
-  const predSeries = [...Array(histLen - 1).fill(null), history_balance[histLen-1], ...predicted_balance];
+  const predSeries = [...Array(histLen - 1).fill(null), history_balance[histLen - 1], ...predicted_balance];
 
-  const stressPlugin = {
-    id: 'stressLine',
+  // All annotated events (history + prediction) for vertical marker lines
+  const allEvents = [
+    ...(story?.history_events    || []),
+    ...(story?.prediction_events || []),
+  ];
+
+  const eventsPlugin = {
+    id: 'eventsPlugin',
     afterDraw(chart) {
-      const idx = stress_index;
-      if (idx < 0 || idx >= labels.length) return;
-      const meta = chart.getDatasetMeta(1);
-      const pt = meta.data[idx];
-      if (!pt) return;
-      const { ctx, chartArea: { top, bottom } } = chart;
-      ctx.save();
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(239,68,68,0.65)';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 4]);
-      ctx.moveTo(pt.x, top);
-      ctx.lineTo(pt.x, bottom);
-      ctx.stroke();
-      ctx.restore();
+      const colorMap = {
+        income:  'rgba(34,197,94,0.50)',
+        expense: 'rgba(239,68,68,0.45)',
+        stress:  'rgba(239,68,68,0.75)',
+        agent:   'rgba(255,224,0,0.70)',
+      };
+      allEvents.forEach(evt => {
+        const idx = evt.chart_index;
+        if (idx < 0 || idx >= labels.length) return;
+        const dsIdx = idx < histLen ? 0 : 1;
+        const pt    = chart.getDatasetMeta(dsIdx).data[idx];
+        if (!pt) return;
+        const { ctx, chartArea: { top, bottom } } = chart;
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = colorMap[evt.type] || 'rgba(255,255,255,0.3)';
+        ctx.lineWidth   = evt.type === 'stress' ? 2 : 1.5;
+        ctx.setLineDash([5, 4]);
+        ctx.moveTo(pt.x, top);
+        ctx.lineTo(pt.x, bottom);
+        ctx.stroke();
+        ctx.restore();
+      });
     },
   };
 
   if (chart) chart.destroy();
   chart = new Chart(ctx, {
     type: 'line',
-    plugins: [stressPlugin],
+    plugins: [eventsPlugin],
     data: {
       labels: labels.map(fmtDate),
       datasets: [
@@ -435,6 +622,12 @@ function buildChart(data) {
           bodyColor: '#e5e5e5',
           callbacks: {
             label: (c) => ` ${c.dataset.label}: ${new Intl.NumberFormat('cs-CZ').format(Math.round(c.parsed.y))} Kč`,
+            afterBody: (items) => {
+              const idx = items[0]?.dataIndex;
+              if (idx == null) return [];
+              const ev = allEvents.find(e => e.chart_index === idx);
+              return ev ? [`── ${ev.label} ──`] : [];
+            },
           },
         },
       },
@@ -527,6 +720,42 @@ function renderLog(entries) {
   box.scrollTop = box.scrollHeight;
 }
 
+// ── Cash Flow story renderer ─────────────────────────────────────────────────
+function renderStory(story) {
+  const histBox = document.getElementById('story-history');
+  const predBox = document.getElementById('story-prediction');
+  if (!story) return;
+
+  const ICONS   = { income: '💰', expense: '📉', stress: '⚠️', agent: '🤖' };
+  const BORDER  = {
+    income:  'border-green-500/20 bg-green-500/5',
+    expense: 'border-red-500/20 bg-red-500/5',
+    stress:  'border-red-500/30 bg-red-900/10',
+    agent:   'border-yellow-400/25 bg-yellow-400/5',
+  };
+  const LBL_CLR = {
+    income:  'text-green-400',
+    expense: 'text-red-400',
+    stress:  'text-red-400',
+    agent:   'text-yellow-400',
+  };
+
+  const card = (e) => `
+    <div class="rounded-xl border ${BORDER[e.type]} p-3 space-y-1.5">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-sm leading-none">${ICONS[e.type]}</span>
+        <span class="text-xs font-bold ${LBL_CLR[e.type]}">${e.label}</span>
+        <span class="ml-auto text-xs font-mono text-neutral-700">${fmtDate(e.date)}</span>
+      </div>
+      <p class="text-xs text-neutral-500 leading-relaxed">${e.text}</p>
+      ${e.amount ? `<p class="text-xs font-semibold ${LBL_CLR[e.type]}">${fmt(e.amount)}</p>` : ''}
+    </div>`;
+
+  const empty = '<p class="text-xs text-neutral-700 italic">Žádná data.</p>';
+  histBox.innerHTML = (story.history_events    || []).map(card).join('') || empty;
+  predBox.innerHTML = (story.prediction_events || []).map(card).join('') || empty;
+}
+
 // ── State fetch ──────────────────────────────────────────────────────────────
 async function fetchState() {
   const res = await fetch('/api/state');
@@ -542,9 +771,11 @@ async function fetchState() {
     `⚠ Stress-test: za ${d.insurance_due_days} dní splatná roční pojistka ${fmt(d.insurance_amount)} – agent to zohlednil v predikci.`;
   document.getElementById('stress-banner').classList.remove('hidden');
 
-  buildChart(d.chart);
+  buildChart(d.chart, d.chart_story);
+  buildDonut(d.expense_donut);
   renderLog(d.agent_log);
   renderHabitWidget(d.detected_habits);
+  renderStory(d.chart_story);
 }
 
 // ── MiFID II score preview ────────────────────────────────────────────────────
