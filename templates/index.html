@@ -646,7 +646,7 @@ document.getElementById('btn-reset').addEventListener('click', async () => {
   document.getElementById('card-units').textContent     =
     `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
   document.getElementById('score-badge').style.display = 'none';
-  renderHabitWidget(null);
+  renderHabitWidget(d.detected_habits);
   renderLog([]);
   await fetchState();
 });

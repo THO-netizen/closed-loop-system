@@ -21,6 +21,38 @@ SIMULATION_AMOUNT = 15_000
 
 HABIT_SCENARIOS = ["gastro_creep", "subscription_trap", "weekend_micro", "overpaying"]
 
+# Per-habit ranges for stochastic EV/Variance generation and display copy.
+HABIT_META: dict[str, dict] = {
+    "gastro_creep": {
+        "name":    "Gastro & Donáška – Lifestyle Creep",
+        "context": "Výdaje za Wolt/Bolt Food a kavárny vzrostly meziměsíčně o 35 %.",
+        "detail":  "meziměsíční nárůst výdajů za jídlo a donášku o 35 %",
+        "ev_min":  7_000,  "ev_max":  10_000,
+        "var_min": 0.0010, "var_max": 0.0015,
+    },
+    "subscription_trap": {
+        "name":    "Subskripční peklo – Subscription Trap",
+        "context": "Nahromadění 6+ drobných měsíčních plateb (Netflix, Spotify, SaaS, gym), které nejsou aktivně využívány.",
+        "detail":  "6+ nevyužívaných měsíčních plateb (Netflix, Spotify, SaaS, gym)",
+        "ev_min":  12_000, "ev_max":  16_000,
+        "var_min": 0.0020, "var_max": 0.0030,
+    },
+    "weekend_micro": {
+        "name":    "Víkendové mikro-transakce – Impulsive Spending",
+        "context": "Vysoká frekvence drobných nákupů o víkendech (čerpací stanice, večerky, mikrotransakce).",
+        "detail":  "vysoká frekvence drobných víkendových nákupů",
+        "ev_min":  9_000,  "ev_max":  13_000,
+        "var_min": 0.0015, "var_max": 0.0022,
+    },
+    "overpaying": {
+        "name":    "Neloajalita vůči energiím – Overpaying Inertia",
+        "context": "Fixní trvalé příkazy za pojištění a energie jsou o 20 % vyšší než průměr trhu.",
+        "detail":  "fixní příkazy 20 % nad tržním průměrem (pojištění, energie)",
+        "ev_min":  7_500,  "ev_max":  11_000,
+        "var_min": 0.0007, "var_max": 0.0011,
+    },
+}
+
 # ---------------------------------------------------------------------------
 # Risk profiles – MiFID II aligned, with distributional parameters
 # ---------------------------------------------------------------------------
@@ -159,6 +191,32 @@ def _build_prediction(current_balance: float) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Stochastic habit helpers
+# ---------------------------------------------------------------------------
+def _pick_habit(rng: random.Random) -> dict:
+    """Randomly choose one habit and generate its EV/Variance within realistic ranges."""
+    scenario = rng.choice(HABIT_SCENARIOS)
+    meta     = HABIT_META[scenario]
+    return {
+        "scenario": scenario,
+        "ev":       rng.randint(meta["ev_min"], meta["ev_max"]),
+        "variance": round(rng.uniform(meta["var_min"], meta["var_max"]), 4),
+    }
+
+
+def _build_detected_habit(habit: dict) -> list[dict]:
+    """Build the detected_habits payload from a habit_info dict (no log entry)."""
+    meta = HABIT_META[habit["scenario"]]
+    return [{
+        "key":      habit["scenario"],
+        "name":     meta["name"],
+        "detail":   meta["detail"],
+        "ev_loss":  habit["ev"],
+        "variance": habit["variance"],
+    }]
+
+
+# ---------------------------------------------------------------------------
 # In-memory state
 # ---------------------------------------------------------------------------
 _INITIAL = {
@@ -172,16 +230,23 @@ _state: dict = {
     **_INITIAL,
     "checking_balance": 0.0,
     "agent_log": [],
-    "detected_habits": None,   # None = not yet analyzed
+    "detected_habits": None,
     "habit_scenario": "gastro_creep",
+    "habit_info": None,
 }
 
 
-def _init_state(initial_balance: int = 52_000) -> None:
+def _init_state(initial_balance: int = 52_000, rng=None) -> None:
     history = _build_history(initial_balance)
     _state["history"] = history
     _state["checking_balance"] = history[-1]["balance"]
     _state["prediction"] = _build_prediction(_state["checking_balance"])
+    if rng is None:
+        rng = random.Random(int.from_bytes(os.urandom(8), "big"))
+    habit = _pick_habit(rng)
+    _state["habit_info"]      = habit
+    _state["habit_scenario"]  = habit["scenario"]
+    _state["detected_habits"] = _build_detected_habit(habit)
 
 
 _init_state()
@@ -253,111 +318,29 @@ def _dispatch_tool(name: str, inp: dict) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# 4-habit spending behaviour detection with EV / Variance per habit
+# Spending-habit log writer (reads pre-generated habit_info from state)
 # ---------------------------------------------------------------------------
 def _detect_spending_habits(risk_profile: str) -> list[dict]:
-    """Detects one of 4 financial bad habits and logs EV/Variance warning."""
-    history = _state["history"]
-    if len(history) < 60:
+    """Log the active habit warning using the EV/Variance already generated at reset time."""
+    habit = _state.get("habit_info")
+    if not habit:
         _state["detected_habits"] = []
         return []
 
-    scenario = _state.get("habit_scenario", "gastro_creep")
-    profile = RISK_PROFILES.get(risk_profile, RISK_PROFILES["vyvazeny"])
-    detected: list[dict] = []
+    meta     = HABIT_META[habit["scenario"]]
+    ev       = habit["ev"]
+    variance = habit["variance"]
+    profile  = RISK_PROFILES.get(risk_profile, RISK_PROFILES["vyvazeny"])
 
-    if scenario == "gastro_creep":
-        recent_gastro = sum(e.get("gastro", 0) for e in history[-60:])
-        prior_gastro  = (
-            sum(e.get("gastro", 0) for e in history[-120:-60])
-            if len(history) >= 120 else round(recent_gastro * 0.74)
-        )
-        growth_pct = round((recent_gastro / prior_gastro - 1) * 100) if prior_gastro > 0 else 35
-        ev_loss  = 8_500
-        variance = 0.0012
-        _log(
-            "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Gastro & Donáška – Lifestyle Creep'. "
-            f"Výdaje za Wolt/Bolt Food a kavárny vzrostly o {growth_pct} % meziměsíčně. "
-            f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
-            f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
-        )
-        detected.append({
-            "key": "gastro_creep",
-            "name": "Gastro & Donáška – Lifestyle Creep",
-            "detail": f"výdaje za jídlo vzrostly o {growth_pct} % MoM",
-            "ev_loss": ev_loss,
-            "variance": variance,
-        })
-
-    elif scenario == "subscription_trap":
-        ev_loss  = 14_400
-        variance = 0.0025
-        _log(
-            "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Subskripční peklo – Subscription Trap'. "
-            f"Nahromadění 6+ drobných měsíčních plateb (Netflix, Spotify, SaaS, gym), "
-            f"které nejsou aktivně využívány. "
-            f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
-            f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
-        )
-        detected.append({
-            "key": "subscription_trap",
-            "name": "Subskripční peklo – Subscription Trap",
-            "detail": "6+ nevyužívaných měsíčních plateb (Netflix, Spotify, SaaS, gym)",
-            "ev_loss": ev_loss,
-            "variance": variance,
-        })
-
-    elif scenario == "weekend_micro":
-        weekend_entries = [
-            e for e in history[-60:]
-            if date.fromisoformat(e["date"]).weekday() >= 5
-        ]
-        avg_micro = (
-            sum(e.get("weekend_micro", 0) for e in weekend_entries) / len(weekend_entries)
-            if weekend_entries else 550
-        )
-        ev_loss  = 11_000
-        variance = 0.0018
-        _log(
-            "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Víkendové mikro-transakce – Impulsive Spending'. "
-            f"Vysoká frekvence drobných nákupů o víkendech – průměrně {round(avg_micro):,} Kč/den "
-            f"(čerpací stanice, večerky, mikrotransakce). "
-            f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
-            f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
-        )
-        detected.append({
-            "key": "weekend_micro",
-            "name": "Víkendové mikro-transakce – Impulsive Spending",
-            "detail": f"průměrně {round(avg_micro):,} Kč/víkendový den (čerpací stanice, večerky)",
-            "ev_loss": ev_loss,
-            "variance": variance,
-        })
-
-    elif scenario == "overpaying":
-        ev_loss  = 9_200
-        variance = 0.0009
-        _log(
-            "spending_warning",
-            f"[Analýza chování ⚠️] Detekován zlozvyk: 'Neloajalita vůči energiím – Overpaying Inertia'. "
-            f"Fixní trvalé příkazy za pojištění a energie jsou o 20 % vyšší než průměr trhu. "
-            f"Pokud nezasáhnete, Expected Value finanční ztráty za 12 měsíců je "
-            f"{ev_loss:,} Kč při Variance = {variance}. "
-            f"Agent doporučuje konsolidaci a okamžité přesměrování ušetřené částky do zvoleného ETF.",
-        )
-        detected.append({
-            "key": "overpaying",
-            "name": "Neloajalita vůči energiím – Overpaying Inertia",
-            "detail": "fixní příkazy 20 % nad tržním průměrem (pojištění, energie)",
-            "ev_loss": ev_loss,
-            "variance": variance,
-        })
-
+    _log(
+        "spending_warning",
+        f"[Analýza chování ⚠️] Detekován zlozvyk: '{meta['name']}'. "
+        f"{meta['context']} "
+        f"Náš stochastický model předpovídá očekávanou roční ztrátu {ev:,} Kč. "
+        f"Míra nejistoty (rozptyl) tohoto odhadu: Var = {variance:.4f}. "
+        f"Agent doporučuje okamžité přesměrování ušetřené částky do {profile['etf_label']}.",
+    )
+    detected = _build_detected_habit(habit)
     _state["detected_habits"] = detected
     return detected
 
@@ -583,20 +566,19 @@ async def reset():
     portfolio_val   = float(rng.randint(20_000, 35_000))
     etf_price       = 150.0
 
-    _state["savings_balance"]  = float(rng.randint(3_000, 8_000))
-    _state["etf_price"]        = etf_price
-    _state["portfolio_units"]  = round(portfolio_val / etf_price, 2)
-    _state["portfolio_value"]  = round(_state["portfolio_units"] * etf_price, 2)
-    _state["agent_log"]        = []
-    _state["detected_habits"]  = None
-    _state["habit_scenario"]   = rng.choice(HABIT_SCENARIOS)
+    _state["savings_balance"] = float(rng.randint(3_000, 8_000))
+    _state["etf_price"]       = etf_price
+    _state["portfolio_units"] = round(portfolio_val / etf_price, 2)
+    _state["portfolio_value"] = round(_state["portfolio_units"] * etf_price, 2)
+    _state["agent_log"]       = []
 
-    _init_state(initial_balance)
+    _init_state(initial_balance, rng)   # picks new habit + generates fresh EV/Variance
     return JSONResponse({
-        "ok": True,
+        "ok":               True,
         "checking_balance": _state["checking_balance"],
         "savings_balance":  _state["savings_balance"],
         "portfolio_value":  _state["portfolio_value"],
         "portfolio_units":  _state["portfolio_units"],
         "etf_price":        _state["etf_price"],
+        "detected_habits":  _state["detected_habits"],   # widget updates immediately
     })
