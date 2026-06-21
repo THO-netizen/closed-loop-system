@@ -579,7 +579,10 @@ async def run_agent_endpoint(body: dict = Body(default={})):
 
 @app.post("/api/reset")
 async def reset():
-    rng = random.Random()           # entropy-seeded → different values each call
+    # Seed from os.urandom to guarantee different values on every call,
+    # regardless of clock resolution or server environment.
+    seed = int.from_bytes(os.urandom(8), "big")
+    rng  = random.Random(seed)
     initial_balance = rng.randint(45_000, 55_000)
     portfolio_val   = float(rng.randint(20_000, 35_000))
     etf_price       = 150.0

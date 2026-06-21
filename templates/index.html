@@ -145,11 +145,56 @@
     </div>
   </div>
 
-  <!-- ── MiFID II Questionnaire ── -->
-  <div class="glass rounded-2xl p-6 space-y-6">
+  <!-- ── Trigger row ── -->
+  <div class="flex flex-col sm:flex-row items-center justify-center gap-3 py-2">
+    <button id="btn-open-mifid"
+            class="w-full sm:w-auto px-8 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300
+                   text-sm font-bold text-neutral-950 transition-colors glow-yellow
+                   flex items-center justify-center gap-2">
+      <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"
+           stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0
+             010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+      </svg>
+      Spustit agenta (MiFID)
+    </button>
+    <button id="btn-reset"
+            class="w-full sm:w-48 py-3 rounded-xl border border-white/8 text-xs text-neutral-500
+                   hover:text-neutral-200 hover:border-yellow-400/30 transition-colors">
+      Resetovat stav
+    </button>
+  </div>
+
+  <!-- ── Agent Log ── -->
+  <div class="glass rounded-2xl p-6 flex flex-col gap-3">
+    <div class="flex items-center gap-2">
+      <span class="pulse-dot"></span>
+      <h2 class="text-sm font-semibold text-neutral-300">Real-time Log Autonomního Agenta</h2>
+    </div>
+    <div id="log-box" class="min-h-[200px] max-h-96 overflow-y-auto space-y-2 pr-1">
+      <p class="text-xs text-neutral-600 italic">Vyplňte MiFID II dotazník a spusťte agenta →</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── MiFID II Modal ── -->
+<div id="mifid-modal"
+     style="display:none"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+  <div class="glass rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto space-y-6 glow-yellow relative">
+
+    <!-- Close -->
+    <button id="btn-close-mifid"
+            class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700
+                   flex items-center justify-center text-neutral-400 hover:text-white
+                   text-base transition-colors leading-none shrink-0">
+      ✕
+    </button>
 
     <!-- Header -->
-    <div class="flex flex-wrap items-start justify-between gap-4">
+    <div class="flex flex-wrap items-start justify-between gap-4 pr-10">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-yellow-400/10 border border-yellow-400/20
                     flex items-center justify-center shrink-0">
@@ -172,7 +217,6 @@
           <p class="text-xs text-neutral-500 mt-0.5">Suitability assessment · Směrnice MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body</p>
         </div>
       </div>
-      <!-- Score preview badge (appears after all 3 answered) -->
       <div id="score-badge"
            style="display:none"
            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-neutral-900
@@ -283,24 +327,19 @@
       ⚠ Prosím, odpovězte na všechny 3 otázky před spuštěním agenta.
     </p>
 
-    <!-- Action row -->
+    <!-- Submit row -->
     <div class="flex flex-col sm:flex-row items-center gap-3 pt-1">
       <button id="btn-run"
-        class="w-full sm:flex-1 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300
-               text-sm font-bold text-neutral-950 transition-colors
-               flex items-center justify-center gap-2">
+              class="w-full sm:flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300
+                     text-sm font-bold text-neutral-950 transition-colors
+                     flex items-center justify-center gap-2">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"
              stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round"
-            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010
-               1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
+            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0
+               010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
         </svg>
-        Vyhodnotit a spustit agenta
-      </button>
-      <button id="btn-reset"
-        class="w-full sm:w-44 py-2.5 rounded-xl border border-white/8 text-xs text-neutral-500
-               hover:text-neutral-200 hover:border-yellow-400/30 transition-colors">
-        Resetovat stav
+        Vyhodnotit a spustit autonomního pilota
       </button>
       <div id="spinner" class="hidden items-center gap-2 shrink-0 py-1">
         <svg class="animate-spin w-5 h-5" style="color:#FFE000" fill="none" viewBox="0 0 24 24">
@@ -313,19 +352,7 @@
     </div>
 
   </div>
-
-  <!-- ── Agent Log ── -->
-  <div class="glass rounded-2xl p-6 flex flex-col gap-3">
-    <div class="flex items-center gap-2">
-      <span class="pulse-dot"></span>
-      <h2 class="text-sm font-semibold text-neutral-300">Real-time Log Autonomního Agenta</h2>
-    </div>
-    <div id="log-box" class="min-h-[200px] max-h-96 overflow-y-auto space-y-2 pr-1">
-      <p class="text-xs text-neutral-600 italic">Vyplňte MiFID II dotazník a spusťte agenta →</p>
-    </div>
-  </div>
-
-</main>
+</div>
 
 <script>
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -557,6 +584,25 @@ function updateScoreBadge() {
 document.querySelectorAll('input[name="q1"], input[name="q2"], input[name="q3"]')
   .forEach((r) => r.addEventListener('change', updateScoreBadge));
 
+// ── Modal open / close ───────────────────────────────────────────────────────
+const modal = document.getElementById('mifid-modal');
+
+document.getElementById('btn-open-mifid').addEventListener('click', () => {
+  modal.style.display = 'flex';
+});
+
+function closeModal() { modal.style.display = 'none'; }
+
+document.getElementById('btn-close-mifid').addEventListener('click', closeModal);
+
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) closeModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
 // ── Button handlers ──────────────────────────────────────────────────────────
 document.getElementById('btn-run').addEventListener('click', async () => {
   const q1el = document.querySelector('input[name="q1"]:checked');
@@ -586,6 +632,7 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       }),
     });
     const d = await res.json();
+    closeModal();
     renderLog(d.agent_log);
     renderHabitWidget(d.detected_habits);
     await fetchState();
