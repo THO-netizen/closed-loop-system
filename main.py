@@ -263,9 +263,10 @@ def _init_state(initial_balance: int = 52_000, rng=None) -> None:
     if rng is None:
         rng = random.Random(int.from_bytes(os.urandom(8), "big"))
     habit = _pick_habit(rng)
-    _state["habit_info"]      = habit
-    _state["habit_scenario"]  = habit["scenario"]
-    _state["detected_habits"] = _build_detected_habit(habit)
+    _state["habit_info"]       = habit
+    _state["habit_scenario"]   = habit["scenario"]
+    _state["detected_habits"]  = _build_detected_habit(habit)
+    _state["monthly_expense"]  = rng.randint(30_000, 60_000)
 
 
 _init_state()
@@ -620,8 +621,7 @@ def _build_expense_donut() -> dict:
     history    = _state.get("history", [])
     habit_info = _state.get("habit_info")
 
-    last_30       = history[-30:] if len(history) >= 30 else history
-    total_expense = int(sum(e["expense"] for e in last_30))
+    total_expense = _state.get("monthly_expense", 47_000)
 
     # Start from base percentages; apply habit boost to the relevant category
     pcts      = {c["key"]: c["pct"] for c in _EXPENSE_CATS}

@@ -177,9 +177,13 @@
     </div>
 
     <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
-      <!-- Donut canvas – fixed square so Chart.js keeps aspect ratio -->
+      <!-- Donut canvas + DOM center text (DOM overlay is simpler and always updates) -->
       <div class="shrink-0 relative mx-auto md:mx-0" style="width:220px;height:220px;">
         <canvas id="donut-chart"></canvas>
+        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
+          <span id="donut-total" class="text-base font-bold text-white tabular-nums leading-tight"></span>
+          <span class="text-xs text-neutral-500 mt-1">Celkové výdaje</span>
+        </div>
       </div>
 
       <!-- Legend + AI insights -->
@@ -426,34 +430,16 @@ let donutChart = null;
 
 function buildDonut(data) {
   if (!data) return;
-  const { total_expense, segments, alarm } = data;
+  const { segments, alarm } = data;
 
-  const centerPlugin = {
-    id: 'donutCenter',
-    afterDraw(ch) {
-      const { ctx: c, chartArea: { left, right, top, bottom } } = ch;
-      const cx = (left + right) / 2;
-      const cy = (top  + bottom) / 2;
-      c.save();
-      c.textAlign    = 'center';
-      c.textBaseline = 'middle';
-
-      const amtStr = new Intl.NumberFormat('cs-CZ').format(total_expense) + ' Kč';
-      c.font      = 'bold 17px system-ui,-apple-system,sans-serif';
-      c.fillStyle = '#ffffff';
-      c.fillText(amtStr, cx, cy - 10);
-
-      c.font      = '11px system-ui,-apple-system,sans-serif';
-      c.fillStyle = '#6B7280';
-      c.fillText('Celkové výdaje', cx, cy + 10);
-      c.restore();
-    },
-  };
+  // Total = exact sum of segment amounts (matches what the slices add up to)
+  const displayTotal = segments.reduce((sum, s) => sum + s.amount, 0);
+  document.getElementById('donut-total').textContent =
+    new Intl.NumberFormat('cs-CZ').format(displayTotal) + ' Kč';
 
   if (donutChart) donutChart.destroy();
   donutChart = new Chart(donutCtx, {
     type: 'doughnut',
-    plugins: [centerPlugin],
     data: {
       labels: segments.map(s => s.label),
       datasets: [{
