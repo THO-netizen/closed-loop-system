@@ -170,7 +170,7 @@ _DAILY_LABEL_POOLS: dict[str, list[str]] = {
 
 
 def _build_daily_tooltips(
-    last60: list[dict], habit_scenario: str | None, rng: random.Random
+    last60: list[dict], habit_scenario, rng: random.Random
 ) -> list[dict]:
     result: list[dict] = []
     for entry in last60:
@@ -251,38 +251,63 @@ def _build_history(
     initial_balance: int = 52_000,
     mortgage_payment: int = 18_000,
     mini_loan_payment: int = 4_000,
+    income_rng=None,
 ) -> list[dict]:
-    rng = random.Random(42)
-    entries = []
-    base_balance = initial_balance
+    if income_rng is None:
+        income_rng = random.Random(43)
 
-    for i in range(180, 0, -1):
-        d = TODAY - timedelta(days=i)
-        income = 0
-        expense = 0
-        gastro = 0
+    days = [(i, TODAY - timedelta(days=i)) for i in range(180, 0, -1)]
+
+    # Pass 1 – tally total expenses per calendar month (mirror seed for daily amounts)
+    month_exp: dict[tuple, int] = {}
+    _temp = random.Random(42)
+    for i, d in days:
+        exp = _temp.randint(400, 950) if i <= 60 else _temp.randint(300, 850)
+        if d.day == 1:  exp += 22_000
+        if d.day == 2:  exp += mortgage_payment
+        if d.day == 5:  exp += 4_500
+        if d.day == 10: exp += 1_500 if i <= 60 else 1_200
+        if d.day == 18: exp += mini_loan_payment
+        key = (d.year, d.month)
+        month_exp[key] = month_exp.get(key, 0) + exp
+
+    # Generate variable monthly income with guardrail: income ≥ expenses + random buffer
+    month_income: dict[tuple, int] = {}
+    for key in sorted(month_exp):
+        base   = income_rng.randint(55_000, 75_000)
+        buffer = income_rng.randint(10_000, 25_000)
+        month_income[key] = max(base, month_exp[key] + buffer)
+
+    # Pass 2 – build entries using pre-computed incomes and same daily-amount sequence
+    rng     = random.Random(42)
+    entries = []
+    balance = initial_balance
+
+    for i, d in days:
+        key           = (d.year, d.month)
+        income        = month_income.get(key, 0) if d.day == 15 else 0
+        expense       = 0
+        gastro        = 0
         subscriptions = 0
         weekend_micro = 0
-        mortgage = 0
-        mini_loan = 0
+        mortgage      = 0
+        mini_loan     = 0
 
-        if d.day == 15:
-            income += 65_000
         if d.day == 1:
             expense += 22_000
         if d.day == 2:
-            mortgage = mortgage_payment
-            expense += mortgage
+            mortgage  = mortgage_payment
+            expense  += mortgage
         if d.day == 5:
             expense += 4_500
         if d.day == 10:
             subscriptions = 1_500 if i <= 60 else 1_200
             expense += subscriptions
         if d.day == 18:
-            mini_loan = mini_loan_payment
-            expense += mini_loan
+            mini_loan  = mini_loan_payment
+            expense   += mini_loan
 
-        daily = rng.randint(400, 950) if i <= 60 else rng.randint(300, 850)
+        daily    = rng.randint(400, 950) if i <= 60 else rng.randint(300, 850)
         expense += daily
 
         if d.weekday() in (2, 5):
@@ -290,20 +315,19 @@ def _build_history(
         if d.weekday() in (5, 6):
             weekend_micro = round(daily * 0.45)
 
-        net = income - expense
-        base_balance += net
+        net      = income - expense
+        balance += net
         entries.append({
             "date":          d.isoformat(),
             "income":        income,
             "expense":       expense,
             "net":           net,
-            "balance":       base_balance,
+            "balance":       balance,
             "gastro":        gastro,
             "subscriptions": subscriptions,
             "weekend_micro": weekend_micro,
             "mortgage":      mortgage,
             "mini_loan":     mini_loan,
-            # Clean spending categories for monthly chart aggregation
             "cat_loans":     mortgage + mini_loan,
             "cat_housing":   (22_000 if d.day == 1 else 0) + (4_500 if d.day == 5 else 0),
             "cat_digital":   subscriptions,
@@ -317,6 +341,7 @@ def _build_prediction(
     current_balance: float,
     mortgage_payment: int = 18_000,
     mini_loan_payment: int = 4_000,
+    pred_income: int = 65_000,
 ) -> list[dict]:
     entries = []
     balance = current_balance
@@ -329,7 +354,7 @@ def _build_prediction(
         mini_loan = 0
 
         if d.day == 15:
-            income += 65_000
+            income += pred_income
         if d.day == 1:
             expense += 22_000
         if d.day == 2:
@@ -431,18 +456,34 @@ def _init_state(initial_balance: int = 52_000, rng=None) -> None:
     _state["mortgage_payment"]  = mortgage_payment
     _state["mini_loan_payment"] = mini_loan_payment
 
-    history = _build_history(initial_balance, mortgage_payment, mini_loan_payment)
-    _state["history"] = history
+    # Build history – income_rng=rng makes monthly incomes vary per reset
+    history = _build_history(initial_balance, mortgage_payment, mini_loan_payment, income_rng=rng)
+    _state["history"]          = history
     _state["checking_balance"] = history[-1]["balance"]
+
+    # Pre-compute prediction month's total display expenses for the income guardrail
+    pred_exp_display = sum(
+        450  # AI-optimized daily variable (SIMULATION_AMOUNT excluded from display)
+        + (22_000          if (TODAY + timedelta(days=i)).day == 1  else 0)
+        + (mortgage_payment if (TODAY + timedelta(days=i)).day == 2  else 0)
+        + (4_500           if (TODAY + timedelta(days=i)).day == 5  else 0)
+        + (1_500           if (TODAY + timedelta(days=i)).day == 10 else 0)
+        + (mini_loan_payment if (TODAY + timedelta(days=i)).day == 18 else 0)
+        for i in range(1, 31)
+    )
+    pred_base   = rng.randint(55_000, 75_000)
+    pred_buffer = rng.randint(10_000, 25_000)
+    pred_income = max(pred_base, pred_exp_display + pred_buffer)
+
     _state["prediction"] = _build_prediction(
-        _state["checking_balance"], mortgage_payment, mini_loan_payment
+        _state["checking_balance"], mortgage_payment, mini_loan_payment, pred_income
     )
     habit = _pick_habit(rng)
     _state["habit_info"]       = habit
     _state["habit_scenario"]   = habit["scenario"]
     _state["detected_habits"]  = _build_detected_habit(habit)
     _state["monthly_expense"]  = rng.randint(30_000, 60_000)
-    _state["monthly_salary"]   = rng.randint(55_000, 70_000)
+    _state["monthly_salary"]   = pred_income
     _state["history_tooltips"]    = _build_daily_tooltips(history[-60:], habit["scenario"], rng)
     _state["prediction_tooltips"] = _build_prediction_tooltips(_state["prediction"])
 
