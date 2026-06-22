@@ -24,30 +24,30 @@ HABIT_SCENARIOS = ["gastro_creep", "subscription_trap", "weekend_micro", "overpa
 # Per-habit ranges for stochastic EV/Variance generation and display copy.
 HABIT_META: dict[str, dict] = {
     "gastro_creep": {
-        "name":    "Gastro & Donáška – Nárůst osobní spotřeby",
-        "context": "Výdaje za Wolt/Bolt Food a kavárny vzrostly meziměsíčně o 35 %.",
-        "detail":  "meziměsíční nárůst výdajů za jídlo a donášku o 35 %",
+        "name":    "Restaurace a volný čas – zvýšená útrata",
+        "context": "Výdaje v kategorii Restaurace a volný čas vzrostly meziměsíčně o 35 %.",
+        "detail":  "meziměsíční nárůst výdajů na stravování mimo domov o 35 %",
         "ev_min":  7_000,  "ev_max":  10_000,
         "var_min": 0.0010, "var_max": 0.0015,
     },
     "subscription_trap": {
-        "name":    "Subskripční peklo – Subscription Trap",
-        "context": "Nahromadění 6+ drobných měsíčních plateb (Netflix, Spotify, SaaS, gym), které nejsou aktivně využívány.",
-        "detail":  "6+ nevyužívaných měsíčních plateb (Netflix, Spotify, SaaS, gym)",
+        "name":    "Digitální služby a předplatné – neaktivní platby",
+        "context": "Detekováno 6+ opakovaných plateb za digitální předplatné, která nejsou aktivně využívána.",
+        "detail":  "6+ neaktivních měsíčních plateb za digitální předplatné",
         "ev_min":  12_000, "ev_max":  16_000,
         "var_min": 0.0020, "var_max": 0.0030,
     },
     "weekend_micro": {
-        "name":    "Víkendové mikro-transakce – Impulsive Spending",
-        "context": "Vysoká frekvence drobných nákupů o víkendech (čerpací stanice, večerky, mikrotransakce).",
-        "detail":  "vysoká frekvence drobných víkendových nákupů",
+        "name":    "Běžné nákupy a spotřeba – impulsivní výdaje",
+        "context": "Vysoká frekvence neplánovaných nákupů spotřebního zboží mimo hlavní nákupní cyklus.",
+        "detail":  "zvýšená frekvence neplánovaných spotřebních výdajů",
         "ev_min":  9_000,  "ev_max":  13_000,
         "var_min": 0.0015, "var_max": 0.0022,
     },
     "overpaying": {
-        "name":    "Neloajalita vůči energiím – Overpaying Inertia",
-        "context": "Fixní trvalé příkazy za pojištění a energie jsou o 20 % vyšší než průměr trhu.",
-        "detail":  "fixní příkazy 20 % nad tržním průměrem (pojištění, energie)",
+        "name":    "Bydlení a služby – nadstandardní sazby",
+        "context": "Fixní trvalé příkazy za energie a služby jsou o 20 % vyšší než průměr trhu.",
+        "detail":  "fixní příkazy za bydlení a služby 20 % nad tržním průměrem",
         "ev_min":  7_500,  "ev_max":  11_000,
         "var_min": 0.0007, "var_max": 0.0011,
     },
@@ -57,19 +57,18 @@ HABIT_META: dict[str, dict] = {
 # Expense donut – category definitions for Revolut-style doughnut chart
 # ---------------------------------------------------------------------------
 _EXPENSE_CATS = [
-    {"key": "housing",       "label": "Bydlení",    "pct": 40, "limit": 40, "color": "#3A4A5C"},
-    {"key": "energy",        "label": "Energie",    "pct": 15, "limit": 15, "color": "#7B5EA7"},
-    {"key": "gastro",        "label": "Gastro",     "pct": 15, "limit": 12, "color": "#FF6B35"},
-    {"key": "subscriptions", "label": "Subskripce", "pct": 10, "limit":  8, "color": "#4A90D9"},
-    {"key": "other",         "label": "Ostatní",    "pct": 20, "limit": 15, "color": "#6E6E73"},
+    {"key": "loans",   "label": "Splátky hypotéky a úvěrů", "pct": 28, "limit": 33, "color": "#3A4A5C"},
+    {"key": "housing", "label": "Bydlení a služby",          "pct": 35, "limit": 35, "color": "#7B5EA7"},
+    {"key": "daily",   "label": "Běžné nákupy a spotřeba",   "pct": 20, "limit": 18, "color": "#6E6E73"},
+    {"key": "digital", "label": "Digitální služby a předpl.", "pct": 7, "limit":  5, "color": "#4A90D9"},
+    {"key": "leisure", "label": "Restaurace a volný čas",    "pct": 10, "limit":  8, "color": "#FF6B35"},
 ]
 
-# Maps each habit scenario → (alarmed_category_key, percentage_boost)
 _HABIT_TO_CAT: dict[str, tuple[str, int]] = {
-    "gastro_creep":      ("gastro",        12),
-    "subscription_trap": ("subscriptions", 14),
-    "weekend_micro":     ("other",         12),
-    "overpaying":        ("energy",        10),
+    "gastro_creep":      ("leisure", 10),
+    "subscription_trap": ("digital", 10),
+    "weekend_micro":     ("daily",   10),
+    "overpaying":        ("housing", 10),
 }
 
 # ---------------------------------------------------------------------------
@@ -140,34 +139,32 @@ def _score_to_profile(q1: int, q2: int, q3: int) -> tuple[str, int]:
 # Daily tooltip label pools – per-habit and generic
 # ---------------------------------------------------------------------------
 _DAILY_LABEL_POOLS: dict[str, list[str]] = {
-    "gastro": [
-        "Zbytný výdaj: Wolt / Bolt Food",
-        "Nárůst výdajů na jídlo: Bolt Food + kavárna",
-        "Zbytný výdaj: donáška / restaurace",
+    "leisure": [
+        "Restaurace a volný čas",
+        "Výdaj: stravování mimo domov",
+        "Neplánovaný výdaj: pohostinství a zábava",
     ],
-    "subs": [
-        "Automatická platba: Netflix / Spotify",
-        "Předplatné: SaaS / cloudová aplikace",
-        "Drobný výdaj: streamovací služba",
+    "digital": [
+        "Digitální služby a předplatné",
+        "Automatická platba: digitální předplatné",
+        "Neaktivní předplatné – opakovaný výběr",
     ],
-    "weekend": [
-        "Víkendový nákup: Večerka / Čerpací stanice",
-        "Impulzivní nákup: Smíšené zboží",
-        "Víkendová mikrotransakce: drogerie",
+    "daily": [
+        "Běžné nákupy a spotřeba",
+        "Neplánovaný nákup: spotřební zboží",
+        "Denní spotřeba: potravinářské zboží",
     ],
-    "energy": [
-        "Fixní příkaz: energie (nadprůměrná sazba)",
-        "Přeplatek: Plyn / Elektřina",
-        "Trvalý příkaz: pojistné (20 % nad trhem)",
+    "housing": [
+        "Bydlení a služby – nadstandardní sazba",
+        "Fixní platba: energetické a provozní služby",
+        "Opakovaný výdaj: provoz domácnosti",
     ],
     "default": [
-        "Běžný nákup potravin (Albert / Lidl)",
-        "Platba kartou: Čerpací stanice",
-        "Nákup: Lékárna / Drogerie",
-        "Bezkontaktní platba: Potraviny",
-        "Online platba: Alza / Mall.cz",
-        "Nákup: Smíšené zboží",
-        "Platba kartou: rychlé občerstvení",
+        "Běžné nákupy a spotřeba",
+        "Denní výdaj: spotřební zboží",
+        "Platba: potravinářské a drogistické zboží",
+        "Výdaj: denní spotřeba domácnosti",
+        "Nákup: smíšené spotřební zboží",
     ],
 }
 
@@ -185,29 +182,35 @@ def _build_daily_tooltips(
         w_micro = entry.get("weekend_micro", 0)
 
         if income > 0:
-            result.append({"label": "Příchozí platba: měsíční mzda", "delta": income})
+            result.append({"label": "Příchozí platba: pravidelná mzda", "delta": income})
             continue
         if d.day == 1:
-            result.append({"label": "Nájemné −22 000 Kč + denní výdaje", "delta": net})
+            result.append({"label": "Bydlení a služby: nájemné", "delta": net})
+            continue
+        if d.day == 2:
+            result.append({"label": "Splátka hypotéky a úvěrů RB", "delta": net})
             continue
         if d.day == 5:
-            result.append({"label": "Záloha energie −4 500 Kč + denní výdaje", "delta": net})
+            result.append({"label": "Bydlení a služby: energie", "delta": net})
             continue
         if d.day == 10 and subs > 0:
-            result.append({"label": "Předplatné −1 500 Kč + denní výdaje", "delta": net})
+            result.append({"label": "Digitální služby a předplatné", "delta": net})
+            continue
+        if d.day == 18:
+            result.append({"label": "Splátka úvěru RB (Minutová půjčka)", "delta": net})
             continue
         if net == 0:
-            result.append({"label": "Žádné zaznamenané pohyby na účtu", "delta": 0})
+            result.append({"label": "Žádné pohyby na účtu", "delta": 0})
             continue
 
         if habit_scenario == "gastro_creep" and gastro > 0:
-            pool = _DAILY_LABEL_POOLS["gastro"]
+            pool = _DAILY_LABEL_POOLS["leisure"]
         elif habit_scenario == "subscription_trap" and d.weekday() in (0, 2, 4):
-            pool = _DAILY_LABEL_POOLS["subs"]
+            pool = _DAILY_LABEL_POOLS["digital"]
         elif habit_scenario == "weekend_micro" and w_micro > 0:
-            pool = _DAILY_LABEL_POOLS["weekend"]
+            pool = _DAILY_LABEL_POOLS["daily"]
         elif habit_scenario == "overpaying" and d.weekday() in (1, 3):
-            pool = _DAILY_LABEL_POOLS["energy"]
+            pool = _DAILY_LABEL_POOLS["housing"]
         else:
             pool = _DAILY_LABEL_POOLS["default"]
 
@@ -300,6 +303,12 @@ def _build_history(
             "weekend_micro": weekend_micro,
             "mortgage":      mortgage,
             "mini_loan":     mini_loan,
+            # Clean spending categories for monthly chart aggregation
+            "cat_loans":     mortgage + mini_loan,
+            "cat_housing":   (22_000 if d.day == 1 else 0) + (4_500 if d.day == 5 else 0),
+            "cat_digital":   subscriptions,
+            "cat_leisure":   gastro,
+            "cat_daily":     daily - gastro,
         })
     return entries
 
@@ -340,7 +349,10 @@ def _build_prediction(
             expense += SIMULATION_AMOUNT
 
         # AI Autopilot cuts variable habit spending by ~33 % (450 vs historic 675)
-        expense += 450
+        daily_var = 450
+        expense  += daily_var
+        leisure   = round(daily_var * 0.30)
+        daily_buy = daily_var - leisure
 
         net = income - expense
         balance += net
@@ -356,6 +368,11 @@ def _build_prediction(
             "is_agent":  is_agent,
             "mortgage":  mortgage,
             "mini_loan": mini_loan,
+            "cat_loans":   mortgage + mini_loan,
+            "cat_housing": (22_000 if d.day == 1 else 0) + (4_500 if d.day == 5 else 0),
+            "cat_digital": (1_500 if d.day == 10 else 0),
+            "cat_leisure": leisure,
+            "cat_daily":   daily_buy,
         })
     return entries
 
@@ -538,7 +555,7 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
     _log(
         "prediction",
         f"[Predikce] Detekován bezpečný dlouhodobý přebytek {amount:,} Kč "
-        "(po odečtení rezervy na blížící se pojistku).",
+        "po pokrytí všech měsíčních závazků (hypotéka, úvěry, bydlení).",
     )
 
     _detect_spending_habits(risk_profile)
@@ -602,6 +619,17 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
         )
 
     _log("wealth_management", wm_msg)
+
+    savings_bal      = _state["savings_balance"]
+    savings_interest = round(savings_bal * 0.035)
+    savings_tax      = round(savings_interest * 0.15)
+    _log(
+        "banking_fees",
+        f"[Transparentnost poplatků RB] "
+        f"Srážková daň z úroků (15 %): {savings_tax:,} Kč automaticky odečtena ze spořicího bonusu {savings_interest:,} Kč. "
+        f"Vedení prémiového účtu: 0 Kč (aktivováno zdarma – splněny podmínky pravidelného příjmu).",
+    )
+
     return f"Simulace dokončena. Profil: {profile['label']}. Přesunuto {amount:,} Kč."
 
 
@@ -816,69 +844,56 @@ def _build_monthly_chart() -> dict:
     expense_data: list = []
     tooltips:     list = []
 
-    FIXED_DAYS = (1, 2, 5, 10, 18)  # rent, mortgage, energy, subs, mini-loan
+    def _sum_cat(entries: list, key: str) -> int:
+        return sum(e.get(key, 0) for e in entries)
 
     for k in last_6:
-        entries       = monthly[k]
-        total_income  = sum(e["income"]  for e in entries)
-        total_expense = sum(e["expense"] for e in entries)
-        # Fixed obligations: rent(1), mortgage(2), energy(5), subs(10), mini-loan(18)
-        fixed_expense = sum(
-            e["expense"]
-            for e in entries
-            if date.fromisoformat(e["date"]).day in FIXED_DAYS
-        )
-        loan_total    = sum(e.get("mortgage", 0) + e.get("mini_loan", 0) for e in entries)
-        variable_expense = max(0, total_expense - fixed_expense)
+        entries      = monthly[k]
+        total_income = _sum_cat(entries, "income")
+        total_exp    = _sum_cat(entries, "expense")
         labels.append(_month_name_cs(k[1]))
         income_data.append(total_income)
-        expense_data.append(total_expense)
+        expense_data.append(total_exp)
         tooltips.append({
-            "total_income":    total_income,
-            "total_expense":   total_expense,
-            "fixed_expense":   fixed_expense,
-            "loan_total":      loan_total,
-            "variable_expense": variable_expense,
+            "total_income":  total_income,
+            "total_expense": total_exp,
+            "cat_loans":     _sum_cat(entries, "cat_loans"),
+            "cat_housing":   _sum_cat(entries, "cat_housing"),
+            "cat_digital":   _sum_cat(entries, "cat_digital"),
+            "cat_leisure":   _sum_cat(entries, "cat_leisure"),
+            "cat_daily":     _sum_cat(entries, "cat_daily"),
         })
 
     # Aggregate prediction month
-    pred_income  = sum(e["income"]  for e in prediction)
-    pred_expense = sum(e["expense"] for e in prediction)
-    pred_fixed   = sum(
-        e["expense"]
-        for e in prediction
-        if date.fromisoformat(e["date"]).day in FIXED_DAYS
-    )
-    pred_stress  = 0  # insurance removed from model
+    pred_income  = _sum_cat(prediction, "income")
+    pred_expense = _sum_cat(prediction, "expense")
     pred_agent   = next((SIMULATION_AMOUNT for e in prediction if e.get("is_agent")), 0)
-    pred_loan    = sum(e.get("mortgage", 0) + e.get("mini_loan", 0) for e in prediction)
-    pred_variable = max(0, pred_expense - pred_fixed - pred_agent)
 
-    # Label = dominant calendar month in the 30-day prediction window
     if prediction:
         month_counts: dict[int, int] = {}
         for e in prediction:
             m = date.fromisoformat(e["date"]).month
             month_counts[m] = month_counts.get(m, 0) + 1
-        pred_month = max(month_counts, key=month_counts.get)
-        pred_label = _month_name_cs(pred_month)
+        pred_label = _month_name_cs(max(month_counts, key=month_counts.get))
     else:
         pred_label = "Predikce"
 
-    # ETF transfer is an investment, not spending — exclude from displayed expense bar
-    pred_expense_display = pred_expense - pred_agent
+    # ETF transfer is investment — exclude from displayed expense bar
+    pred_exp_display = pred_expense - pred_agent
 
     labels.append(pred_label)
     income_data.append(pred_income)
-    expense_data.append(pred_expense_display)
+    expense_data.append(pred_exp_display)
     tooltips.append({
-        "total_income":    pred_income,
-        "total_expense":   pred_expense_display,
-        "fixed_expense":   pred_fixed,
-        "loan_total":      pred_loan,
-        "variable_expense": pred_variable,
-        "ai_autopilot":    pred_agent,
-        "is_prediction":   True,
+        "total_income":  pred_income,
+        "total_expense": pred_exp_display,
+        "cat_loans":     _sum_cat(prediction, "cat_loans"),
+        "cat_housing":   _sum_cat(prediction, "cat_housing"),
+        "cat_digital":   _sum_cat(prediction, "cat_digital"),
+        "cat_leisure":   _sum_cat(prediction, "cat_leisure"),
+        "cat_daily":     _sum_cat(prediction, "cat_daily"),
+        "ai_autopilot":  pred_agent,
+        "is_prediction": True,
     })
 
     return {

@@ -657,13 +657,14 @@ function buildChart(data) {
                      `   Pravidelná mzda (15.): ${n.format(salary)} Kč`]
                   : [` Příjmy celkem: ${n.format(Math.round(c.parsed.y))} Kč`];
               } else {
-                // Expense bar
-                const fixed = (tt.fixed_expense ?? 0) - (tt.loan_total ?? 0);
+                // Expense bar – 5 clean banking categories
                 const lines = [
                   ` Výdaje celkem: ${n.format(Math.round(c.parsed.y))} Kč`,
-                  `   Fixní platby (nájem + energie): ${n.format(Math.max(0, fixed))} Kč`,
-                  `   Splátky úvěrů RB: ${n.format(tt.loan_total ?? 0)} Kč`,
-                  `   Variabilní výdaje: ${n.format(tt.variable_expense ?? 0)} Kč`,
+                  `   Splátky hypotéky a úvěrů:   ${n.format(tt.cat_loans   ?? 0)} Kč`,
+                  `   Bydlení a služby:            ${n.format(tt.cat_housing ?? 0)} Kč`,
+                  `   Běžné nákupy a spotřeba:     ${n.format(tt.cat_daily   ?? 0)} Kč`,
+                  `   Digitální služby a předpl.:  ${n.format(tt.cat_digital ?? 0)} Kč`,
+                  `   Restaurace a volný čas:      ${n.format(tt.cat_leisure ?? 0)} Kč`,
                 ];
                 if (tt.ai_autopilot) lines.push(`   + AI Autopilot → ETF: ${n.format(tt.ai_autopilot)} Kč`);
                 return lines;
@@ -729,14 +730,15 @@ function renderHabitWidget(habits) {
 
 // ── Log renderer ─────────────────────────────────────────────────────────────
 const ACTION_META = {
-  transfer_to_savings: { label: 'Převod na spoření',   color: 'text-neutral-200',  icon: '🏦' },
-  invest_funds:        { label: 'Investice ETF',        color: 'text-yellow-300',   icon: '📈' },
-  agent_thought:       { label: 'Analýza agenta',       color: 'text-neutral-300',  icon: '🤖' },
-  prediction:          { label: 'Predikce',             color: 'text-neutral-200',  icon: '🔭' },
-  execution:           { label: 'Exekuce',              color: 'text-yellow-400',   icon: '⚡' },
-  wealth_management:   { label: 'Wealth Management',    color: 'text-yellow-300',   icon: '🌱' },
-  spending_warning:    { label: 'Varování: Výdaje',     color: 'text-red-400',      icon: '⚠️' },
-  mifid_result:        { label: 'MiFID II Profil',      color: 'text-yellow-400',   icon: '📋' },
+  transfer_to_savings: { label: 'Převod na spoření',      color: 'text-neutral-200', icon: '🏦' },
+  invest_funds:        { label: 'Investice ETF',           color: 'text-yellow-300',  icon: '📈' },
+  agent_thought:       { label: 'Analýza agenta',          color: 'text-neutral-300', icon: '🤖' },
+  prediction:          { label: 'Predikce cash flow',      color: 'text-neutral-200', icon: '🔭' },
+  execution:           { label: 'Exekuce',                 color: 'text-yellow-400',  icon: '⚡' },
+  wealth_management:   { label: 'Wealth Management',       color: 'text-yellow-300',  icon: '🌱' },
+  spending_warning:    { label: 'Analýza výdajů',          color: 'text-red-400',     icon: '⚠️' },
+  mifid_result:        { label: 'MiFID II Profil',         color: 'text-yellow-400',  icon: '📋' },
+  banking_fees:        { label: 'Poplatky a daně',         color: 'text-neutral-500', icon: '🏛️' },
 };
 
 function renderLog(entries) {
