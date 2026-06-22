@@ -658,13 +658,14 @@ function buildChart(data) {
                   : [` Příjmy celkem: ${n.format(Math.round(c.parsed.y))} Kč`];
               } else {
                 // Expense bar
+                const fixed = (tt.fixed_expense ?? 0) - (tt.loan_total ?? 0);
                 const lines = [
                   ` Výdaje celkem: ${n.format(Math.round(c.parsed.y))} Kč`,
-                  `   Fixní platby (nájem, energie): ${n.format(tt.fixed_expense ?? 0)} Kč`,
+                  `   Fixní platby (nájem + energie): ${n.format(Math.max(0, fixed))} Kč`,
+                  `   Splátky úvěrů RB: ${n.format(tt.loan_total ?? 0)} Kč`,
                   `   Variabilní výdaje: ${n.format(tt.variable_expense ?? 0)} Kč`,
                 ];
-                if (tt.stress_test)  lines.push(`   Roční pojistka (stress-test): ${n.format(tt.stress_test)} Kč`);
-                if (tt.ai_autopilot) lines.push(`   AI Autopilot → ETF portfolio: ${n.format(tt.ai_autopilot)} Kč`);
+                if (tt.ai_autopilot) lines.push(`   + AI Autopilot → ETF: ${n.format(tt.ai_autopilot)} Kč`);
                 return lines;
               }
             },
@@ -767,22 +768,22 @@ function renderStory(story) {
   const predBox = document.getElementById('story-prediction');
   if (!story) return;
 
-  const ICONS   = { income: '💰', expense: '📉', stress: '⚠️', agent: '🤖' };
+  const ICONS   = { income: '💰', expense: '📉', loans: '🏠', agent: '🤖' };
   const BORDER  = {
     income:  'border-green-500/20 bg-green-500/5',
     expense: 'border-red-500/20 bg-red-500/5',
-    stress:  'border-red-500/30 bg-red-900/10',
+    loans:   'border-blue-400/20 bg-blue-400/5',
     agent:   'border-yellow-400/25 bg-yellow-400/5',
   };
   const LBL_CLR = {
     income:  'text-green-400',
     expense: 'text-red-400',
-    stress:  'text-red-400',
+    loans:   'text-blue-400',
     agent:   'text-yellow-400',
   };
 
   const card = (e) => {
-    const pfx    = e.type === 'income' ? '' : '−';
+    const pfx    = (e.type === 'income') ? '' : '−';
     const footer = e.amount != null ? `
       <div class="flex items-center justify-between pt-1.5 mt-1.5 border-t border-white/5">
         <span class="text-xs font-bold tabular-nums ${LBL_CLR[e.type]}">${pfx}${fmt(e.amount)}</span>
@@ -791,10 +792,10 @@ function renderStory(story) {
           : ''}
       </div>` : '';
     return `
-      <div class="rounded-xl border ${BORDER[e.type]} p-3 space-y-1.5">
+      <div class="rounded-xl border ${BORDER[e.type] ?? BORDER.expense} p-3 space-y-1.5">
         <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-sm leading-none">${ICONS[e.type]}</span>
-          <span class="text-xs font-bold ${LBL_CLR[e.type]}">${e.label}</span>
+          <span class="text-sm leading-none">${ICONS[e.type] ?? '•'}</span>
+          <span class="text-xs font-bold ${LBL_CLR[e.type] ?? 'text-neutral-300'}">${e.label}</span>
           <span class="ml-auto text-xs font-mono text-neutral-700">${fmtDate(e.date)}</span>
         </div>
         <p class="text-xs text-neutral-500 leading-relaxed">${e.text}</p>

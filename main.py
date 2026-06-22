@@ -244,7 +244,11 @@ def _build_prediction_tooltips(prediction: list[dict]) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Mock history – deterministic daily amounts (seed 42), variable start balance
 # ---------------------------------------------------------------------------
-def _build_history(initial_balance: int = 52_000) -> list[dict]:
+def _build_history(
+    initial_balance: int = 52_000,
+    mortgage_payment: int = 18_000,
+    mini_loan_payment: int = 4_000,
+) -> list[dict]:
     rng = random.Random(42)
     entries = []
     base_balance = initial_balance
@@ -256,45 +260,55 @@ def _build_history(initial_balance: int = 52_000) -> list[dict]:
         gastro = 0
         subscriptions = 0
         weekend_micro = 0
+        mortgage = 0
+        mini_loan = 0
 
         if d.day == 15:
             income += 65_000
         if d.day == 1:
             expense += 22_000
+        if d.day == 2:
+            mortgage = mortgage_payment
+            expense += mortgage
         if d.day == 5:
             expense += 4_500
         if d.day == 10:
             subscriptions = 1_500 if i <= 60 else 1_200
             expense += subscriptions
+        if d.day == 18:
+            mini_loan = mini_loan_payment
+            expense += mini_loan
 
         daily = rng.randint(400, 950) if i <= 60 else rng.randint(300, 850)
         expense += daily
 
-        if d.weekday() in (2, 5):   # Wed, Sat → gastro attribution
+        if d.weekday() in (2, 5):
             gastro = round(daily * 0.55)
-
-        if d.weekday() in (5, 6):   # Sat, Sun → impulse micro-transaction attribution
+        if d.weekday() in (5, 6):
             weekend_micro = round(daily * 0.45)
-
-        if i == 165:
-            expense += INSURANCE_AMOUNT
 
         net = income - expense
         base_balance += net
         entries.append({
-            "date": d.isoformat(),
-            "income": income,
-            "expense": expense,
-            "net": net,
-            "balance": base_balance,
-            "gastro": gastro,
+            "date":          d.isoformat(),
+            "income":        income,
+            "expense":       expense,
+            "net":           net,
+            "balance":       base_balance,
+            "gastro":        gastro,
             "subscriptions": subscriptions,
             "weekend_micro": weekend_micro,
+            "mortgage":      mortgage,
+            "mini_loan":     mini_loan,
         })
     return entries
 
 
-def _build_prediction(current_balance: float) -> list[dict]:
+def _build_prediction(
+    current_balance: float,
+    mortgage_payment: int = 18_000,
+    mini_loan_payment: int = 4_000,
+) -> list[dict]:
     entries = []
     balance = current_balance
 
@@ -302,25 +316,31 @@ def _build_prediction(current_balance: float) -> list[dict]:
         d = TODAY + timedelta(days=i)
         income = 0
         expense = 0
+        mortgage = 0
+        mini_loan = 0
 
         if d.day == 15:
             income += 65_000
         if d.day == 1:
             expense += 22_000
+        if d.day == 2:
+            mortgage = mortgage_payment
+            expense += mortgage
         if d.day == 5:
             expense += 4_500
         if d.day == 10:
             expense += 1_500
+        if d.day == 18:
+            mini_loan = mini_loan_payment
+            expense += mini_loan
 
-        if i == INSURANCE_DUE_DAYS:
-            expense += INSURANCE_AMOUNT
-
-        # AI Autopilot redirects surplus to ETF two days after insurance clears
-        is_agent = (i == INSURANCE_DUE_DAYS + 2)
+        # AI Autopilot redirects surplus to ETF on day 22 of the prediction window
+        is_agent = (i == 22)
         if is_agent:
             expense += SIMULATION_AMOUNT
 
-        expense += 675
+        # AI Autopilot cuts variable habit spending by ~33 % (450 vs historic 675)
+        expense += 450
 
         net = income - expense
         balance += net
@@ -332,8 +352,10 @@ def _build_prediction(current_balance: float) -> list[dict]:
             "net":       net,
             "balance":   balance,
             "surplus":   surplus,
-            "is_stress": i == INSURANCE_DUE_DAYS,
+            "is_stress": False,
             "is_agent":  is_agent,
+            "mortgage":  mortgage,
+            "mini_loan": mini_loan,
         })
     return entries
 
@@ -385,12 +407,19 @@ _state: dict = {
 
 
 def _init_state(initial_balance: int = 52_000, rng=None) -> None:
-    history = _build_history(initial_balance)
-    _state["history"] = history
-    _state["checking_balance"] = history[-1]["balance"]
-    _state["prediction"] = _build_prediction(_state["checking_balance"])
     if rng is None:
         rng = random.Random(int.from_bytes(os.urandom(8), "big"))
+    mortgage_payment  = rng.randint(15_000, 22_000)
+    mini_loan_payment = rng.randint(3_000, 5_000)
+    _state["mortgage_payment"]  = mortgage_payment
+    _state["mini_loan_payment"] = mini_loan_payment
+
+    history = _build_history(initial_balance, mortgage_payment, mini_loan_payment)
+    _state["history"] = history
+    _state["checking_balance"] = history[-1]["balance"]
+    _state["prediction"] = _build_prediction(
+        _state["checking_balance"], mortgage_payment, mini_loan_payment
+    )
     habit = _pick_habit(rng)
     _state["habit_info"]       = habit
     _state["habit_scenario"]   = habit["scenario"]
@@ -585,15 +614,16 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
         return _run_fallback(risk_profile)
 
     prediction = _state["prediction"]
-    safe_surplus = min(e["surplus"] for e in prediction[:INSURANCE_DUE_DAYS])
-    stress_day = next((e for e in prediction if e.get("is_stress")), None)
+    safe_surplus = min(e["surplus"] for e in prediction[:15]) if prediction else 0.0
     profile = RISK_PROFILES.get(risk_profile, RISK_PROFILES["vyvazeny"])
+    mortgage  = _state.get("mortgage_payment", 18_000)
+    mini_loan = _state.get("mini_loan_payment", 4_000)
 
     system_prompt = (
         f"Jsi autonomní finanční agent pro systém Closed-Loop Banking. "
         f"Rizikový profil uživatele (MiFID II): {profile['label']} "
         f"(ETF {round(profile['etf_pct']*100)} %, spoření {round(profile['savings_pct']*100)} %). "
-        "Analyzuj cash flow, zohledni stress-test a proveď odpovídající přesuny pomocí nástrojů. "
+        "Analyzuj cash flow, detekuj neefektivní výdaje a proveď optimalizaci pomocí nástrojů. "
         "Odpovídej česky, stručně a přesně."
     )
 
@@ -601,9 +631,8 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
         f"Běžný účet: {_state['checking_balance']:,.0f} Kč\n"
         f"Spořicí účet: {_state['savings_balance']:,.0f} Kč\n"
         f"Portfolio (ETF): {_state['portfolio_value']:,.0f} Kč\n"
-        f"Bezpečný přebytek před stress-testem: {safe_surplus:,.0f} Kč\n"
-        f"Stress-test: za {INSURANCE_DUE_DAYS} dní pojistka {INSURANCE_AMOUNT:,} Kč "
-        f"(prognóza zůstatku: {stress_day['balance']:,.0f} Kč)\n\n"
+        f"Měsíční fixní závazky: splátka hypotéky {mortgage:,} Kč + půjčka {mini_loan:,} Kč\n"
+        f"Odhadovaný přebytek před závazky: {safe_surplus:,.0f} Kč\n\n"
         "Proveď autonomní rozhodnutí."
     )
 
@@ -704,29 +733,36 @@ def _build_chart_story() -> dict:
         ),
     })
 
+    # Card 3: Pravidelné závazky – most-recent month's loan payments from history
+    mortgage_payment  = _state.get("mortgage_payment", 18_000)
+    mini_loan_payment = _state.get("mini_loan_payment", 4_000)
+    loan_total        = mortgage_payment + mini_loan_payment
+
+    loan_idx = next(
+        (i for i in range(len(last_60) - 1, -1, -1) if last_60[i].get("mini_loan", 0) > 0),
+        None,
+    )
+    loan_date = last_60[loan_idx]["date"] if loan_idx is not None else last_60[-1]["date"]
+    history_events.append({
+        "chart_index": loan_idx if loan_idx is not None else hist_len - 1,
+        "date":        loan_date,
+        "type":        "loans",
+        "label":       "Pravidelné závazky 🏠",
+        "amount":      loan_total,
+        "balance":     None,
+        "text": (
+            f"Odešlo na splátky úvěrů RB: {_czk(loan_total)}. "
+            f"Splátka hypotéky: {_czk(mortgage_payment)}, "
+            f"Minutová půjčka RB: {_czk(mini_loan_payment)}."
+        ),
+    })
+
     prediction_events: list[dict] = []
 
-    # Card 3: Stress-test – balance AFTER insurance from prediction array
-    stress_idx = next((i for i, e in enumerate(prediction) if e.get("is_stress")), None)
-    if stress_idx is not None:
-        bal_after_stress = int(prediction[stress_idx]["balance"])
-        prediction_events.append({
-            "chart_index": hist_len + stress_idx,
-            "date":        prediction[stress_idx]["date"],
-            "type":        "stress",
-            "label":       "Stress-test",
-            "amount":      INSURANCE_AMOUNT,       # red number = insurance payment
-            "balance":     bal_after_stress,        # displayed in footer
-            "text": (
-                f"Platba roční pojistky {_czk(INSURANCE_AMOUNT)}. "
-                f"Predikovaný zůstatek po platbě: {_czk(bal_after_stress)}."
-            ),
-        })
-
-    # Card 4: AI Autopilot – SIMULATION_AMOUNT is a real deduction in _build_prediction()
+    # Card 4: AI Autopilot – ETF transfer + habit spending reduction
     agent_idx = next((i for i, e in enumerate(prediction) if e.get("is_agent")), None)
     if agent_idx is None:
-        agent_idx = min(INSURANCE_DUE_DAYS + 2, len(prediction) - 1)
+        agent_idx = min(22, len(prediction) - 1)
     bal_after_agent = int(prediction[agent_idx]["balance"])
     etf_projected   = int(portfolio + SIMULATION_AMOUNT)
     prediction_events.append({
@@ -734,12 +770,12 @@ def _build_chart_story() -> dict:
         "date":        prediction[agent_idx]["date"],
         "type":        "agent",
         "label":       "AI Autopilot",
-        "amount":      SIMULATION_AMOUNT,      # yellow number = ETF transfer
-        "balance":     bal_after_agent,        # displayed in footer
-        "etf_after":   etf_projected,          # used to update portfolio card
+        "amount":      SIMULATION_AMOUNT,
+        "balance":     bal_after_agent,
+        "etf_after":   etf_projected,
         "text": (
-            f"AI Autopilot přesunul přebytek {_czk(SIMULATION_AMOUNT)} do ETF portfolia. "
-            f"Zůstatek běžného účtu: {_czk(bal_after_agent)}. "
+            f"AI Autopilot detekoval skrytý únik peněz a zkrotil výdaje na Gastro & Subskripce. "
+            f"Variabilní výdaje sníženy o ~33 %. Přebytek {_czk(SIMULATION_AMOUNT)} přesměrován do ETF portfolia. "
             f"Projekce ETF po převodu: {_czk(etf_projected)}."
         ),
     })
@@ -780,16 +816,19 @@ def _build_monthly_chart() -> dict:
     expense_data: list = []
     tooltips:     list = []
 
+    FIXED_DAYS = (1, 2, 5, 10, 18)  # rent, mortgage, energy, subs, mini-loan
+
     for k in last_6:
         entries       = monthly[k]
         total_income  = sum(e["income"]  for e in entries)
         total_expense = sum(e["expense"] for e in entries)
-        # Fixed: rent (day 1), energy (day 5), subscriptions (day 10)
+        # Fixed obligations: rent(1), mortgage(2), energy(5), subs(10), mini-loan(18)
         fixed_expense = sum(
             e["expense"]
             for e in entries
-            if date.fromisoformat(e["date"]).day in (1, 5, 10)
+            if date.fromisoformat(e["date"]).day in FIXED_DAYS
         )
+        loan_total    = sum(e.get("mortgage", 0) + e.get("mini_loan", 0) for e in entries)
         variable_expense = max(0, total_expense - fixed_expense)
         labels.append(_month_name_cs(k[1]))
         income_data.append(total_income)
@@ -798,6 +837,7 @@ def _build_monthly_chart() -> dict:
             "total_income":    total_income,
             "total_expense":   total_expense,
             "fixed_expense":   fixed_expense,
+            "loan_total":      loan_total,
             "variable_expense": variable_expense,
         })
 
@@ -807,11 +847,12 @@ def _build_monthly_chart() -> dict:
     pred_fixed   = sum(
         e["expense"]
         for e in prediction
-        if date.fromisoformat(e["date"]).day in (1, 5, 10)
+        if date.fromisoformat(e["date"]).day in FIXED_DAYS
     )
-    pred_stress  = next((INSURANCE_AMOUNT for e in prediction if e.get("is_stress")), 0)
+    pred_stress  = 0  # insurance removed from model
     pred_agent   = next((SIMULATION_AMOUNT for e in prediction if e.get("is_agent")), 0)
-    pred_variable = max(0, pred_expense - pred_fixed - pred_stress - pred_agent)
+    pred_loan    = sum(e.get("mortgage", 0) + e.get("mini_loan", 0) for e in prediction)
+    pred_variable = max(0, pred_expense - pred_fixed - pred_agent)
 
     # Label = dominant calendar month in the 30-day prediction window
     if prediction:
@@ -824,15 +865,18 @@ def _build_monthly_chart() -> dict:
     else:
         pred_label = "Predikce"
 
+    # ETF transfer is an investment, not spending — exclude from displayed expense bar
+    pred_expense_display = pred_expense - pred_agent
+
     labels.append(pred_label)
     income_data.append(pred_income)
-    expense_data.append(pred_expense)
+    expense_data.append(pred_expense_display)
     tooltips.append({
         "total_income":    pred_income,
-        "total_expense":   pred_expense,
+        "total_expense":   pred_expense_display,
         "fixed_expense":   pred_fixed,
+        "loan_total":      pred_loan,
         "variable_expense": pred_variable,
-        "stress_test":     pred_stress,
         "ai_autopilot":    pred_agent,
         "is_prediction":   True,
     })
