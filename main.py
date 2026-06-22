@@ -748,6 +748,104 @@ def _build_chart_story() -> dict:
         "history_events":    history_events,
         "prediction_events": prediction_events,
     }
+_CS_MONTHS = [
+    "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
+    "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec",
+]
+
+
+def _month_name_cs(month: int) -> str:
+    return _CS_MONTHS[month - 1]
+
+
+def _build_monthly_chart() -> dict:
+    """Aggregate daily history/prediction into monthly grouped bar chart data."""
+    history    = _state.get("history", [])
+    prediction = _state.get("prediction", [])
+
+    # Group history entries by (year, month)
+    monthly: dict[tuple, list] = {}
+    for entry in history:
+        d   = date.fromisoformat(entry["date"])
+        key = (d.year, d.month)
+        if key not in monthly:
+            monthly[key] = []
+        monthly[key].append(entry)
+
+    sorted_keys = sorted(monthly.keys())
+    last_6      = sorted_keys[-6:] if len(sorted_keys) >= 6 else sorted_keys
+
+    labels:       list = []
+    income_data:  list = []
+    expense_data: list = []
+    tooltips:     list = []
+
+    for k in last_6:
+        entries       = monthly[k]
+        total_income  = sum(e["income"]  for e in entries)
+        total_expense = sum(e["expense"] for e in entries)
+        # Fixed: rent (day 1), energy (day 5), subscriptions (day 10)
+        fixed_expense = sum(
+            e["expense"]
+            for e in entries
+            if date.fromisoformat(e["date"]).day in (1, 5, 10)
+        )
+        variable_expense = max(0, total_expense - fixed_expense)
+        labels.append(_month_name_cs(k[1]))
+        income_data.append(total_income)
+        expense_data.append(total_expense)
+        tooltips.append({
+            "total_income":    total_income,
+            "total_expense":   total_expense,
+            "fixed_expense":   fixed_expense,
+            "variable_expense": variable_expense,
+        })
+
+    # Aggregate prediction month
+    pred_income  = sum(e["income"]  for e in prediction)
+    pred_expense = sum(e["expense"] for e in prediction)
+    pred_fixed   = sum(
+        e["expense"]
+        for e in prediction
+        if date.fromisoformat(e["date"]).day in (1, 5, 10)
+    )
+    pred_stress  = next((INSURANCE_AMOUNT for e in prediction if e.get("is_stress")), 0)
+    pred_agent   = next((SIMULATION_AMOUNT for e in prediction if e.get("is_agent")), 0)
+    pred_variable = max(0, pred_expense - pred_fixed - pred_stress - pred_agent)
+
+    # Label = dominant calendar month in the 30-day prediction window
+    if prediction:
+        month_counts: dict[int, int] = {}
+        for e in prediction:
+            m = date.fromisoformat(e["date"]).month
+            month_counts[m] = month_counts.get(m, 0) + 1
+        pred_month = max(month_counts, key=month_counts.get)
+        pred_label = _month_name_cs(pred_month)
+    else:
+        pred_label = "Predikce"
+
+    labels.append(pred_label)
+    income_data.append(pred_income)
+    expense_data.append(pred_expense)
+    tooltips.append({
+        "total_income":    pred_income,
+        "total_expense":   pred_expense,
+        "fixed_expense":   pred_fixed,
+        "variable_expense": pred_variable,
+        "stress_test":     pred_stress,
+        "ai_autopilot":    pred_agent,
+        "is_prediction":   True,
+    })
+
+    return {
+        "labels":                 labels,
+        "income":                 income_data,
+        "expense":                expense_data,
+        "tooltips":               tooltips,
+        "prediction_month_index": len(labels) - 1,
+    }
+
+
 def _etf_5yr_gain(ev_annual: float, annual_return: float = 0.095) -> int:
     """Compound growth on redirected monthly savings over 5 years minus principal."""
     monthly_pmt = ev_annual / 12
@@ -828,30 +926,19 @@ async def index(request: Request):
 
 @app.get("/api/state")
 async def get_state():
-    history = _state["history"]
-    prediction = _state["prediction"]
-    chart_labels = [e["date"] for e in history[-60:]] + [e["date"] for e in prediction]
-
     return JSONResponse({
         "checking_balance": _state["checking_balance"],
-        "savings_balance": _state["savings_balance"],
-        "portfolio_value": _state["portfolio_value"],
-        "portfolio_units": _state["portfolio_units"],
-        "etf_price": _state["etf_price"],
+        "savings_balance":  _state["savings_balance"],
+        "portfolio_value":  _state["portfolio_value"],
+        "portfolio_units":  _state["portfolio_units"],
+        "etf_price":        _state["etf_price"],
         "insurance_due_days": INSURANCE_DUE_DAYS,
-        "insurance_amount": INSURANCE_AMOUNT,
-        "agent_log": _state["agent_log"][-20:],
-        "detected_habits": _state.get("detected_habits"),  # None until first agent run
-        "chart": {
-            "labels":              chart_labels,
-            "history_balance":     [e["balance"] for e in history[-60:]],
-            "predicted_balance":   [e["balance"] for e in prediction],
-            "history_tooltips":    _state.get("history_tooltips", []),
-            "prediction_tooltips": _state.get("prediction_tooltips", []),
-            "stress_index":        len(history[-60:]) + INSURANCE_DUE_DAYS - 1,
-        },
-        "chart_story":    _build_chart_story(),
-        "expense_donut":  _build_expense_donut(),
+        "insurance_amount":   INSURANCE_AMOUNT,
+        "agent_log":        _state["agent_log"][-20:],
+        "detected_habits":  _state.get("detected_habits"),
+        "chart":            _build_monthly_chart(),
+        "chart_story":      _build_chart_story(),
+        "expense_donut":    _build_expense_donut(),
     })
 
 
