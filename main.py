@@ -897,9 +897,9 @@ def _build_monthly_chart() -> dict:
     })
 
     return {
-        "labels":                 labels,
-        "income":                 income_data,
-        "expense":                expense_data,
+        "months":                 labels,
+        "income_data":            income_data,
+        "expense_data":           expense_data,
         "tooltips":               tooltips,
         "prediction_month_index": len(labels) - 1,
     }
@@ -934,7 +934,8 @@ def _build_expense_donut() -> dict:
         if cat_key:
             alarm_key        = cat_key
             pcts[cat_key]   += boost
-            reduce_key       = "other" if cat_key != "other" else "housing"
+            # Absorb the boost from "daily" (catch-all); fall back to "housing"
+            reduce_key       = "daily" if cat_key != "daily" else "housing"
             pcts[reduce_key] = max(5, pcts[reduce_key] - boost)
             diff             = 100 - sum(pcts.values())
             pcts[reduce_key] += diff  # normalise to exactly 100 %

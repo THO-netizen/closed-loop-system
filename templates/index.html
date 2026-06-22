@@ -582,28 +582,35 @@ function buildDonut(data) {
 }
 
 function buildChart(data) {
-  const { labels, income, expense, tooltips = [], prediction_month_index } = data;
+  if (!data) return;
+  const months       = data.months       || data.labels      || [];
+  const income       = data.income_data  || data.income      || [];
+  const expense      = data.expense_data || data.expense     || [];
+  const tooltips     = data.tooltips     || [];
+  const predIdx      = data.prediction_month_index ?? (months.length - 1);
   const n = new Intl.NumberFormat('cs-CZ');
 
+  if (!months.length) return;
+
   // Prediction month gets lower opacity to distinguish forecast from actuals
-  const incomeColors  = labels.map((_, i) =>
-    i === prediction_month_index ? 'rgba(46,204,113,0.28)' : 'rgba(46,204,113,0.72)'
+  const incomeColors  = months.map((_, i) =>
+    i === predIdx ? 'rgba(46,204,113,0.28)' : 'rgba(46,204,113,0.72)'
   );
-  const expenseColors = labels.map((_, i) =>
-    i === prediction_month_index ? 'rgba(239,68,68,0.26)'  : 'rgba(239,68,68,0.68)'
+  const expenseColors = months.map((_, i) =>
+    i === predIdx ? 'rgba(239,68,68,0.26)'  : 'rgba(239,68,68,0.68)'
   );
-  const incomeBorder  = labels.map((_, i) =>
-    i === prediction_month_index ? 'rgba(46,204,113,0.50)' : 'rgba(46,204,113,0.88)'
+  const incomeBorder  = months.map((_, i) =>
+    i === predIdx ? 'rgba(46,204,113,0.50)' : 'rgba(46,204,113,0.88)'
   );
-  const expenseBorder = labels.map((_, i) =>
-    i === prediction_month_index ? 'rgba(239,68,68,0.46)'  : 'rgba(239,68,68,0.86)'
+  const expenseBorder = months.map((_, i) =>
+    i === predIdx ? 'rgba(239,68,68,0.46)'  : 'rgba(239,68,68,0.86)'
   );
 
   if (chart) chart.destroy();
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels,
+      labels: months,
       datasets: [
         {
           label: 'Příjmy',
@@ -643,8 +650,8 @@ function buildChart(data) {
               const idx = items[0]?.dataIndex;
               const tt  = tooltips[idx];
               return tt?.is_prediction
-                ? `${labels[idx]}  ·  Predikovaný měsíc`
-                : labels[idx];
+                ? `${months[idx]}  ·  Predikovaný měsíc`
+                : (months[idx] ?? '');
             },
             label: (c) => {
               const idx = c.dataIndex;
@@ -819,20 +826,25 @@ function renderStory(story) {
 
 // ── State fetch ──────────────────────────────────────────────────────────────
 async function fetchState() {
-  const res = await fetch('/api/state');
-  const d = await res.json();
+  try {
+    const res = await fetch('/api/state');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const d = await res.json();
 
-  document.getElementById('card-checking').textContent  = fmt(d.checking_balance);
-  document.getElementById('card-savings').textContent   = fmt(d.savings_balance);
-  document.getElementById('card-portfolio').textContent = fmt(d.portfolio_value);
-  document.getElementById('card-units').textContent =
-    `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
+    document.getElementById('card-checking').textContent  = fmt(d.checking_balance);
+    document.getElementById('card-savings').textContent   = fmt(d.savings_balance);
+    document.getElementById('card-portfolio').textContent = fmt(d.portfolio_value);
+    document.getElementById('card-units').textContent =
+      `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
 
-  buildChart(d.chart);
-  buildDonut(d.expense_donut);
-  renderLog(d.agent_log);
-  renderHabitWidget(d.detected_habits);
-  renderStory(d.chart_story);
+    try { buildChart(d.chart); }              catch(e) { console.error('buildChart:', e); }
+    try { buildDonut(d.expense_donut); }      catch(e) { console.error('buildDonut:', e); }
+    try { renderLog(d.agent_log); }           catch(e) { console.error('renderLog:', e); }
+    try { renderHabitWidget(d.detected_habits); } catch(e) { console.error('renderHabitWidget:', e); }
+    try { renderStory(d.chart_story); }       catch(e) { console.error('renderStory:', e); }
+  } catch(e) {
+    console.error('fetchState failed:', e);
+  }
 }
 
 // ── MiFID II score preview ────────────────────────────────────────────────────
