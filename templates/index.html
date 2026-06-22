@@ -430,6 +430,11 @@
 // ── helpers ──────────────────────────────────────────────────────────────────
 const fmt = (n) => new Intl.NumberFormat('cs-CZ').format(Math.round(n)) + ' Kč';
 const fmtDate = (s) => new Date(s).toLocaleDateString('cs-CZ', {day:'2-digit',month:'2-digit'});
+// Human label for spending-habit variance (risk / predictability)
+const varLabel = (v) =>
+  v < 0.0012 ? 'Stabilní trend' :
+  v < 0.0022 ? 'Mírná kolísavost' :
+               'Vyšší kolísavost';
 
 // ── Mode toggle: Autopilot / Kopilot ─────────────────────────────────────────
 let agentMode = 'autopilot';
@@ -563,7 +568,7 @@ function buildDonut(data) {
         </p>
         <p class="text-xs leading-relaxed text-neutral-400">
           🏦 <span class="font-bold text-neutral-300">Ušlá příležitost:</span>
-          Při nulovém zhodnocení na běžném účtu je Expected Value ztráty kupní síly
+          Při nulovém zhodnocení na běžném účtu je očekávaná ztráta kupní síly
           vlivem inflace (při průměrné inflaci 2,5&nbsp;%) za 5 let vyčíslena na
           <span class="font-bold text-red-400">${fmt(alarm.inflation_loss_5yr)}&nbsp;Kč</span>.
         </p>
@@ -758,12 +763,13 @@ function renderHabitWidget(habits) {
       <p class="text-xs text-neutral-400">${h.detail}</p>
       <div class="flex gap-6 pt-1">
         <div>
-          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">E[Ztráta / 12M]</p>
+          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">Očekávaná roční ztráta</p>
           <p class="text-sm font-bold text-red-400">${fmt(h.ev_loss)}</p>
         </div>
         <div>
-          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">Variance</p>
-          <p class="text-sm font-bold text-orange-400">${h.variance.toFixed(4)}</p>
+          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">Míra rizika (Kolísavost)</p>
+          <p class="text-sm font-bold text-orange-400">${varLabel(h.variance)}</p>
+          <p class="text-xs text-neutral-700 mt-0.5">(Var&nbsp;=&nbsp;${h.variance.toFixed(4)})</p>
         </div>
       </div>
     </div>`).join('');

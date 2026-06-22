@@ -109,6 +109,24 @@ RISK_PROFILES: dict[str, dict] = {
 }
 
 
+def _var_label_investment(var: float) -> str:
+    """Human-readable market-volatility label for investment context."""
+    if var < 0.005:
+        return "s nízkou kolísavostí trhu"
+    if var < 0.015:
+        return "s mírnou kolísavostí trhu"
+    return "s vyšší kolísavostí trhu (typické pro dynamický profil)"
+
+
+def _var_label_spending(var: float) -> str:
+    """Human-readable risk label for spending-habit context."""
+    if var < 0.0012:
+        return "nízká (stabilní, předvídatelný vzorec)"
+    if var < 0.0022:
+        return "mírná (občasné výkyvy)"
+    return "vyšší (proměnlivý výdajový vzorec)"
+
+
 def _score_to_profile(q1: int, q2: int, q3: int) -> tuple[str, int]:
     score = q1 + q2 + q3
     if score <= 4:
@@ -470,9 +488,9 @@ def _detect_spending_habits(risk_profile: str) -> list[dict]:
         "spending_warning",
         f"[Analýza chování ⚠️] Detekován zlozvyk: '{meta['name']}'. "
         f"{meta['context']} "
-        f"Náš stochastický model předpovídá očekávanou roční ztrátu {ev:,} Kč. "
-        f"Míra nejistoty (rozptyl) tohoto odhadu: Var = {variance:.4f}. "
-        f"Agent doporučuje okamžité přesměrování ušetřené částky do {profile['etf_label']}.",
+        f"Očekávaná roční ztráta: {ev:,} Kč při {_var_label_spending(variance)} riziku. "
+        f"Agent doporučuje okamžité přesměrování ušetřené částky do {profile['etf_label']}. "
+        f"(Matematický model: E[ZTRÁTA] = {ev:,} Kč, Var(X) = {variance:.4f})",
     )
     detected = _build_detected_habit(habit)
     _state["detected_habits"] = detected
@@ -522,7 +540,8 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
             f"Apple, Microsoft, Nvidia a Google. Je to motor pro maximální dlouhodobý růst.\n"
             f"- {msci_amt:,} Kč (30 %) dávám do Amundi MSCI World ETF. Tento fond investuje do "
             f"tisíců firem napříč Evropou a Japonskem, abychom nespoléhali jen na Ameriku a snížili riziko.\n"
-            f"Statistika portfolia: Očekávaná hodnota E[X] = {ev:.1f} % p.a., Rozptyl Var(X) = {var:.4f}."
+            f"Předpokládaný roční výnos: {ev:.1f} % p.a. {_var_label_investment(var)}. "
+            f"(Model: E[X] = {ev:.1f}%, Var(X) = {var:.4f})"
         )
     elif risk_profile == "vyvazeny":
         eq_amt   = round(amount * 0.50)
@@ -535,7 +554,8 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
             f"- {bond_amt:,} Kč (50 %) posílám do iShares Core Global Aggregate Bond ETF. To je "
             f"balík bezpečných vládních a firemních dluhopisů. Pokud akciové trhy začnou klesat, "
             f"tyto dluhopisy budou fungovat jako polštář a ochrání váš účet před velkými propady.\n"
-            f"Statistika portfolia: Očekávaná hodnota E[X] = {ev:.1f} % p.a., Rozptyl Var(X) = {var:.4f}."
+            f"Předpokládaný roční výnos: {ev:.1f} % p.a. {_var_label_investment(var)}. "
+            f"(Model: E[X] = {ev:.1f}%, Var(X) = {var:.4f})"
         )
     else:  # konzervativni
         bond_amt   = round(amount * 0.80)
@@ -548,7 +568,8 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
             f"- {liquid_amt:,} Kč (20 %) přesouvám přímo na váš Spořicí účet v Raiffeisenbank. "
             f"Tyto peníze nikam neuzamykám, zůstávají vám plně po ruce jako okamžitá rezerva, "
             f"ale úročí se lepším úrokem.\n"
-            f"Statistika portfolia: Očekávaná hodnota E[X] = {ev:.1f} % p.a., Rozptyl Var(X) = {var:.4f}."
+            f"Předpokládaný roční výnos: {ev:.1f} % p.a. {_var_label_investment(var)}. "
+            f"(Model: E[X] = {ev:.1f}%, Var(X) = {var:.4f})"
         )
 
     _log("wealth_management", wm_msg)
@@ -847,9 +868,9 @@ async def run_agent_endpoint(body: dict = Body(default={})):
         "mifid_result",
         f"Na základě MiFID II dotazníku (Skóre: {score}/9) byl zvolen profil "
         f"{profile['label']}. Alokuji prostředky. "
-        f"Parametry distribuce portfolia: "
-        f"Očekávaná hodnota = {profile['expected_value']:.1f} % p.a., "
-        f"Rozptyl = {profile['variance']:.4f}.",
+        f"Předpokládaný roční výnos portfolia: {profile['expected_value']:.1f} % p.a. "
+        f"{_var_label_investment(profile['variance'])}. "
+        f"(Model: E[X] = {profile['expected_value']:.1f}%, Var(X) = {profile['variance']:.4f})",
     )
 
     summary = run_agent(risk_profile)
