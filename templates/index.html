@@ -689,7 +689,7 @@ function buildChart(data, story) {
                 const amtStr = n.format(ev.amount);
                 const CTX = {
                   income:  `Pravidelná výplata  +${amtStr} Kč`,
-                  expense: `Odchod plateb a zlozvyk  −${amtStr} Kč`,
+                  expense: `Odchod plateb a neefektivní výdaj  −${amtStr} Kč`,
                   stress:  `Platba roční pojistky  −${amtStr} Kč`,
                   agent:   `Přesun přebytku do ETF  −${amtStr} Kč`,
                 };
@@ -748,11 +748,11 @@ function renderHabitWidget(habits) {
     indicator.className = 'w-3 h-3 rounded-full bg-green-500 shrink-0 transition-all duration-300';
     label.textContent   = 'Zdravé finance';
     label.className     = 'ml-auto text-xs text-green-400 font-semibold';
-    content.innerHTML   = '<p class="text-xs text-neutral-500">Zdravé finance – nebyly detekovány žádné kritické zlozvyky. ✅</p>';
+    content.innerHTML   = '<p class="text-xs text-neutral-500">Zdravé finance – nebyly detekovány žádné skryté úniky peněz. ✅</p>';
     return;
   }
   indicator.className = 'w-3 h-3 rounded-full bg-orange-400 shrink-0 transition-all duration-300 animate-pulse';
-  label.textContent   = habits.length > 1 ? `Detekováno ${habits.length} zlozvyky` : 'Detekován zlozvyk';
+  label.textContent   = habits.length > 1 ? `Detekovány ${habits.length} skryté úniky peněz` : 'Detekován skrytý únik peněz';
   label.className     = 'ml-auto text-xs text-orange-400 font-semibold';
   content.innerHTML   = habits.map(h => `
     <div class="mt-2 bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 space-y-2">

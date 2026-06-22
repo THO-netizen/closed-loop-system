@@ -24,7 +24,7 @@ HABIT_SCENARIOS = ["gastro_creep", "subscription_trap", "weekend_micro", "overpa
 # Per-habit ranges for stochastic EV/Variance generation and display copy.
 HABIT_META: dict[str, dict] = {
     "gastro_creep": {
-        "name":    "Gastro & Donáška – Lifestyle Creep",
+        "name":    "Gastro & Donáška – Nárůst osobní spotřeby",
         "context": "Výdaje za Wolt/Bolt Food a kavárny vzrostly meziměsíčně o 35 %.",
         "detail":  "meziměsíční nárůst výdajů za jídlo a donášku o 35 %",
         "ev_min":  7_000,  "ev_max":  10_000,
@@ -142,7 +142,7 @@ def _score_to_profile(q1: int, q2: int, q3: int) -> tuple[str, int]:
 _DAILY_LABEL_POOLS: dict[str, list[str]] = {
     "gastro": [
         "Zbytný výdaj: Wolt / Bolt Food",
-        "Gastro lifestyle creep: Bolt Food + kavárna",
+        "Nárůst výdajů na jídlo: Bolt Food + kavárna",
         "Zbytný výdaj: donáška / restaurace",
     ],
     "subs": [
@@ -486,7 +486,7 @@ def _detect_spending_habits(risk_profile: str) -> list[dict]:
 
     _log(
         "spending_warning",
-        f"[Analýza chování ⚠️] Detekován zlozvyk: '{meta['name']}'. "
+        f"[Analýza chování ⚠️] Detekován skrytý únik peněz: '{meta['name']}'. "
         f"{meta['context']} "
         f"Očekávaná roční ztráta: {ev:,} Kč při {_var_label_spending(variance)} riziku. "
         f"Agent doporučuje okamžité přesměrování ušetřené částky do {profile['etf_label']}. "
@@ -699,7 +699,7 @@ def _build_chart_story() -> dict:
         "amount":      expense_amt,          # red number = total expense
         "balance":     bal_at_exp,           # displayed in footer
         "text": (
-            f"Výdajový vrchol {_czk(expense_amt)}: nájemné, energie a zlozvyk [{habit_name}]. "
+            f"Výdajový vrchol {_czk(expense_amt)}: nájemné, energie a neefektivní výdaj [{habit_name}]. "
             f"Zůstatek po odchodu plateb: {_czk(bal_at_exp)}."
         ),
     })
