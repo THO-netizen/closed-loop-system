@@ -8,10 +8,12 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Body
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
 app = FastAPI(title="Autonomous Closed-Loop Banking")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 TODAY = date.today()
