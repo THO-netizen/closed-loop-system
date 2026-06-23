@@ -71,9 +71,16 @@
   </svg>
   <span class="text-base font-bold tracking-tight text-white">Raiffeisen</span>
   <span class="text-base font-light tracking-tight text-neutral-400">Closed-Loop Banking</span>
-  <span class="ml-auto flex items-center gap-2 text-xs text-neutral-500">
+  <span class="flex items-center gap-2 text-xs text-neutral-500 ml-auto">
     <span class="pulse-dot"></span> Live demo
   </span>
+  <div class="flex items-center gap-1 pl-3 border-l border-white/10">
+    <button class="lang-btn px-1.5 py-0.5 rounded text-xs font-bold transition-colors" data-lang="cz">CZ</button>
+    <button class="lang-btn px-1.5 py-0.5 rounded text-xs font-bold transition-colors" data-lang="ua">UA</button>
+    <button class="lang-btn px-1.5 py-0.5 rounded text-xs font-bold transition-colors" data-lang="sk">SK</button>
+    <button class="lang-btn px-1.5 py-0.5 rounded text-xs font-bold transition-colors" data-lang="vn">VN</button>
+    <button class="lang-btn px-1.5 py-0.5 rounded text-xs font-bold transition-colors" data-lang="ru">RU</button>
+  </div>
 </header>
 
 <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
@@ -81,17 +88,17 @@
   <!-- ── Balance cards ── -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="glass rounded-2xl p-5 glow-yellow">
-      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1">Běžný účet</p>
+      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1" data-i18n="checking_label">Běžný účet</p>
       <p id="card-checking" class="text-3xl font-bold rb-value">—</p>
       <p class="text-xs text-neutral-600 mt-1">CZK</p>
     </div>
     <div class="glass rounded-2xl p-5 glow-neutral">
-      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1">Spořicí účet</p>
+      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1" data-i18n="savings_label">Spořicí účet</p>
       <p id="card-savings" class="text-3xl font-bold text-white">—</p>
       <p class="text-xs text-neutral-600 mt-1">CZK</p>
     </div>
     <div class="glass rounded-2xl p-5 glow-soft">
-      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1">ETF Portfolio</p>
+      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-1" data-i18n="portfolio_label">ETF Portfolio</p>
       <p id="card-portfolio" class="text-3xl font-bold text-yellow-200">—</p>
       <p id="card-units" class="text-xs text-neutral-600 mt-1">jednotky @ — Kč</p>
     </div>
@@ -100,16 +107,16 @@
   <!-- ── Chart ── -->
   <div class="glass rounded-2xl p-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <h2 class="text-sm font-semibold text-neutral-300">Cash Flow – 6 měsíců historie + 1 měsíc predikce</h2>
+      <h2 class="text-sm font-semibold text-neutral-300" data-i18n="chart_title">Cash Flow – 6 měsíců historie + 1 měsíc predikce</h2>
       <div class="flex items-center gap-4 text-xs text-neutral-500">
         <span class="flex items-center gap-1.5">
-          <span class="inline-block w-3 h-3 rounded-sm" style="background:rgba(46,204,113,0.72)"></span>Příjmy
+          <span class="inline-block w-3 h-3 rounded-sm" style="background:rgba(46,204,113,0.72)"></span><span data-i18n="legend_income">Příjmy</span>
         </span>
         <span class="flex items-center gap-1.5">
-          <span class="inline-block w-3 h-3 rounded-sm" style="background:rgba(239,68,68,0.68)"></span>Výdaje
+          <span class="inline-block w-3 h-3 rounded-sm" style="background:rgba(239,68,68,0.68)"></span><span data-i18n="legend_expense">Výdaje</span>
         </span>
         <span class="flex items-center gap-1.5">
-          <span class="inline-block w-3 h-3 rounded-sm opacity-40 bg-neutral-400"></span>Predikce (průhledné)
+          <span class="inline-block w-3 h-3 rounded-sm opacity-40 bg-neutral-400"></span><span data-i18n="legend_prediction">Predikce (průhledné)</span>
         </span>
       </div>
     </div>
@@ -127,27 +134,27 @@
                0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0
                2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/>
         </svg>
-        Příběh vašeho Cash Flow
+        <span data-i18n="story_title">Příběh vašeho Cash Flow</span>
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <!-- Historic milestones -->
         <div>
           <div class="flex items-center gap-2 mb-2">
             <span class="inline-block w-6 h-px bg-white/40 rounded"></span>
-            <span class="text-xs text-neutral-600 uppercase tracking-widest">Historické milníky</span>
+            <span class="text-xs text-neutral-600 uppercase tracking-widest" data-i18n="story_history">Historické milníky</span>
           </div>
           <div id="story-history" class="space-y-2">
-            <p class="text-xs text-neutral-700 italic">Načítám milníky...</p>
+            <p class="text-xs text-neutral-700 italic" data-i18n="story_loading_milestones">Načítám milníky...</p>
           </div>
         </div>
         <!-- Prediction events -->
         <div>
           <div class="flex items-center gap-2 mb-2">
             <span class="inline-block w-6 h-px rounded" style="background:#FFE000;opacity:0.5"></span>
-            <span class="text-xs text-neutral-600 uppercase tracking-widest">Predikovaný vývoj</span>
+            <span class="text-xs text-neutral-600 uppercase tracking-widest" data-i18n="story_prediction">Predikovaný vývoj</span>
           </div>
           <div id="story-prediction" class="space-y-2">
-            <p class="text-xs text-neutral-700 italic">Načítám predikce...</p>
+            <p class="text-xs text-neutral-700 italic" data-i18n="story_loading_prediction">Načítám predikce...</p>
           </div>
         </div>
       </div>
@@ -159,7 +166,7 @@
         <svg class="w-3.5 h-3.5 text-yellow-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/>
         </svg>
-        Projekce investičního portfolia
+        <span data-i18n="proj_title">Projekce investičního portfolia</span>
       </h3>
       <div id="fv-projection-inner" class="rounded-xl border border-yellow-400/15 bg-yellow-400/5 p-4 space-y-2">
       </div>
@@ -169,8 +176,8 @@
   <!-- ── Expense Donut (Revolut-style) ── -->
   <div class="glass rounded-2xl p-6">
     <div class="flex items-center justify-between mb-5">
-      <h2 class="text-sm font-semibold text-neutral-300">Struktura měsíčních výdajů</h2>
-      <span class="text-xs text-neutral-600 uppercase tracking-widest">posledních 30 dní</span>
+      <h2 class="text-sm font-semibold text-neutral-300" data-i18n="donut_title">Struktura měsíčních výdajů</h2>
+      <span class="text-xs text-neutral-600 uppercase tracking-widest" data-i18n="donut_subtitle">posledních 30 dní</span>
     </div>
 
     <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
@@ -179,7 +186,7 @@
         <canvas id="donut-chart"></canvas>
         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
           <span id="donut-total" class="text-base font-bold text-white tabular-nums leading-tight"></span>
-          <span class="text-xs text-neutral-500 mt-1">Celkové výdaje</span>
+          <span class="text-xs text-neutral-500 mt-1" data-i18n="donut_center_label">Celkové výdaje</span>
         </div>
       </div>
 
@@ -195,11 +202,11 @@
   <div class="glass rounded-2xl p-6">
     <div class="flex items-center gap-3 mb-4">
       <div id="habit-indicator" class="w-3 h-3 rounded-full bg-neutral-600 shrink-0 transition-all duration-300"></div>
-      <h2 class="text-sm font-semibold text-neutral-300">Analýza finančního chování</h2>
+      <h2 class="text-sm font-semibold text-neutral-300" data-i18n="habit_title">Analýza finančního chování</h2>
       <span id="habit-status-label" class="ml-auto text-xs text-neutral-500">Čeká na analýzu</span>
     </div>
     <div id="habit-widget-content">
-      <p class="text-xs text-neutral-600 italic">Spusťte agenta pro analýzu vzorců chování →</p>
+      <p class="text-xs text-neutral-600 italic" data-i18n="habit_waiting_hint">Spusťte agenta pro analýzu vzorců chování →</p>
     </div>
   </div>
 
@@ -215,17 +222,17 @@
               class="mode-btn relative z-10 flex-1 flex items-center justify-center gap-1.5
                      px-4 py-2 rounded-[9px] text-xs font-bold text-neutral-950
                      transition-colors duration-200 whitespace-nowrap">
-        ✈ Plně autonomní Autopilot
+        <span data-i18n="mode_autopilot">✈ Plně autonomní Autopilot</span>
       </button>
       <button id="toggle-kopilot" data-mode="kopilot"
               class="mode-btn relative z-10 flex-1 flex items-center justify-center gap-1.5
                      px-4 py-2 rounded-[9px] text-xs font-semibold text-neutral-500
                      transition-colors duration-200 whitespace-nowrap">
-        🤝 Schvalovací Kopilot
+        <span data-i18n="mode_kopilot">🤝 Schvalovací Kopilot</span>
       </button>
     </div>
   </div>
-  <p id="mode-hint" class="text-center text-xs text-neutral-600 -mt-1 mb-2">
+  <p id="mode-hint" class="text-center text-xs text-neutral-600 -mt-1 mb-2" data-i18n="mode_hint_autopilot">
     Agent provádí transakce samostatně na pozadí.
   </p>
 
@@ -241,12 +248,12 @@
           d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0
              010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
       </svg>
-      Spustit agenta (MiFID)
+      <span data-i18n="btn_open_mifid">Spustit agenta (MiFID)</span>
     </button>
     <button id="btn-reset"
             class="w-full sm:w-48 py-3 rounded-xl border border-white/8 text-xs text-neutral-500
                    hover:text-neutral-200 hover:border-yellow-400/30 transition-colors">
-      Resetovat stav
+      <span data-i18n="btn_reset">Resetovat stav</span>
     </button>
   </div>
 
@@ -254,10 +261,10 @@
   <div class="glass rounded-2xl p-6 flex flex-col gap-3">
     <div class="flex items-center gap-2">
       <span class="pulse-dot"></span>
-      <h2 class="text-sm font-semibold text-neutral-300">Real-time Log Autonomního Agenta</h2>
+      <h2 class="text-sm font-semibold text-neutral-300" data-i18n="log_title">Real-time Log Autonomního Agenta</h2>
     </div>
     <div id="log-box" class="min-h-[200px] max-h-96 overflow-y-auto space-y-2 pr-1">
-      <p class="text-xs text-neutral-600 italic">Vyplňte MiFID II dotazník a spusťte agenta →</p>
+      <p class="text-xs text-neutral-600 italic" data-i18n="log_empty">Vyplňte MiFID II dotazník a spusťte agenta →</p>
     </div>
   </div>
 
@@ -297,8 +304,8 @@
           </svg>
         </div>
         <div>
-          <h2 class="text-sm font-bold text-white tracking-tight">MiFID II Investiční dotazník</h2>
-          <p class="text-xs text-neutral-500 mt-0.5">Suitability assessment · Směrnice MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body</p>
+          <h2 class="text-sm font-bold text-white tracking-tight" data-i18n="modal_title">MiFID II Investiční dotazník</h2>
+          <p class="text-xs text-neutral-500 mt-0.5" data-i18n="modal_subtitle">Suitability assessment · Směrnice MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body</p>
         </div>
       </div>
       <div id="score-badge"
@@ -316,7 +323,7 @@
         <div class="flex items-start gap-2.5">
           <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
                        flex items-center justify-center shrink-0 mt-0.5">1</span>
-          <p class="text-xs font-semibold text-neutral-200 leading-snug">
+          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q1_text">
             Jaký je váš investiční horizont?
           </p>
         </div>
@@ -324,19 +331,19 @@
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q1" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">A</span> — Méně než 3 roky
+              <span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q1_a">Méně než 3 roky</span>
             </span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q1" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">B</span> — 3–7 let
+              <span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q1_b">3–7 let</span>
             </span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q1" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">C</span> — Více než 7 let
+              <span class="font-semibold text-neutral-300">C</span> — <span data-i18n="q1_c">Více než 7 let</span>
             </span>
           </label>
         </div>
@@ -347,7 +354,7 @@
         <div class="flex items-start gap-2.5">
           <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
                        flex items-center justify-center shrink-0 mt-0.5">2</span>
-          <p class="text-xs font-semibold text-neutral-200 leading-snug">
+          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q2_text">
             Jaký pokles portfolia byste unesl/a bez paniky?
           </p>
         </div>
@@ -355,19 +362,19 @@
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q2" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">A</span> — Max 5 %
+              <span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q2_a">Max 5 %</span>
             </span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q2" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">B</span> — Do 15 %
+              <span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q2_b">Do 15 %</span>
             </span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q2" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">C</span> — Více než 20 % pro maximalizaci zisku
+              <span class="font-semibold text-neutral-300">C</span> — <span data-i18n="q2_c">Více než 20 % pro maximalizaci zisku</span>
             </span>
           </label>
         </div>
@@ -378,7 +385,7 @@
         <div class="flex items-start gap-2.5">
           <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
                        flex items-center justify-center shrink-0 mt-0.5">3</span>
-          <p class="text-xs font-semibold text-neutral-200 leading-snug">
+          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q3_text">
             Jaké jsou vaše zkušenosti s investováním?
           </p>
         </div>
@@ -386,19 +393,19 @@
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q3" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">A</span> — Žádné
+              <span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q3_a">Žádné</span>
             </span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q3" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">B</span> — Mám spořicí účty a podílové fondy
+              <span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q3_b">Mám spořicí účty a podílové fondy</span>
             </span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q3" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
             <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">C</span> — Obchoduji akcie / ETF
+              <span class="font-semibold text-neutral-300">C</span> — <span data-i18n="q3_c">Obchoduji akcie / ETF</span>
             </span>
           </label>
         </div>
@@ -407,7 +414,7 @@
     </div>
 
     <!-- Validation error -->
-    <p id="q-error" class="hidden text-xs text-red-400">
+    <p id="q-error" class="hidden text-xs text-red-400" data-i18n="q_error">
       ⚠ Prosím, odpovězte na všechny 3 otázky před spuštěním agenta.
     </p>
 
@@ -423,7 +430,7 @@
             d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0
                010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"/>
         </svg>
-        <span id="btn-run-label">Vyhodnotit a spustit autonomního pilota</span>
+        <span id="btn-run-label" data-i18n="btn_run_autopilot">Vyhodnotit a spustit autonomního pilota</span>
       </button>
       <div id="spinner" class="hidden items-center gap-2 shrink-0 py-1">
         <svg class="animate-spin w-5 h-5" style="color:#FFE000" fill="none" viewBox="0 0 24 24">
@@ -431,7 +438,7 @@
           <path class="opacity-75" fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
-        <span class="text-xs text-neutral-500 whitespace-nowrap">Agent pracuje…</span>
+        <span class="text-xs text-neutral-500 whitespace-nowrap" data-i18n="spinner_text">Agent pracuje…</span>
       </div>
     </div>
 
@@ -439,28 +446,411 @@
 </div>
 
 <script>
+// ── i18n ─────────────────────────────────────────────────────────────────────
+let currentLang = localStorage.getItem('rb_lang') || 'cz';
+
+const LANG_STRINGS = {
+  cz: {
+    checking_label:'Běžný účet', savings_label:'Spořicí účet', portfolio_label:'ETF Portfolio',
+    chart_title:'Cash Flow – 6 měsíců historie + 1 měsíc predikce',
+    legend_income:'Příjmy', legend_expense:'Výdaje', legend_prediction:'Predikce (průhledné)',
+    pred_month_suffix:'Predikovaný měsíc',
+    story_title:'Příběh vašeho Cash Flow', story_history:'Historické milníky',
+    story_prediction:'Predikovaný vývoj', story_loading_milestones:'Načítám milníky...',
+    story_loading_prediction:'Načítám predikce...', story_no_data:'Žádná data.',
+    balance_label:'Zůstatek:',
+    proj_title:'Projekce investičního portfolia',
+    proj_text:'Pokud AI Autopilot bude pravidelně investovat ušetřenou částku ({pmt}/měsíčně), předpokládaná hodnota vašeho ETF portfolia za {years} let bude činit až {fv}.',
+    proj_rate_note:'(při průměrném zhodnocení {rate} % p.a., profil: {profile})',
+    proj_stats:'Statistický model portfolia pro horizont {years} let: E[X] = {ev} · σ = {sigma}',
+    proj_sigma_note:'(σ ≈ {pct} % finální hodnoty, model RB-ALM-01)',
+    horizon:{1:'Krátkodobý cíl za 3 roky',2:'Střednědobý cíl za 5 let',3:'Dlouhodobý cíl za 10 let'},
+    donut_title:'Struktura měsíčních výdajů', donut_subtitle:'posledních 30 dní',
+    donut_center_label:'Celkové výdaje',
+    donut_healthy:'✅ Struktura výdajů v normě. Žádná kategorie nepřekračuje doporučené limity.',
+    alarm_title:'AI Alarm:', alarm_segment:'Segment',
+    alarm_pct_text:'tvoří {pct} % vašich výdajů.',
+    alarm_limit:'Limit pro zdravé finance překročen o {pct} %.',
+    alarm_plan_title:'Akční plán:',
+    alarm_plan:'Zrušením nevyužívaných služeb ušetříte přesně {amount} měsíčně.',
+    alarm_opt_title:'Optimalizace:',
+    alarm_opt:'Přesměrováním této částky do vašeho iShares S&amp;P&nbsp;500 ETF vzroste očekávaná hodnota vašeho majetku za 5 let o {amount}.',
+    alarm_opp_title:'Ušlá příležitost:',
+    alarm_opp:'Při nulovém zhodnocení na běžném účtu je očekávaná ztráta kupní síly vlivem inflace (při průměrné inflaci 2,5&nbsp;%) za 5 let vyčíslena na {amount}.',
+    habit_title:'Analýza finančního chování', habit_waiting:'Čeká na analýzu',
+    habit_waiting_hint:'Spusťte agenta pro analýzu vzorců chování →',
+    habit_healthy_label:'Zdravé finance',
+    habit_healthy_text:'Zdravé finance – nebyly detekovány žádné skryté úniky peněz. ✅',
+    habit_detected_1:'Detekován skrytý únik peněz',
+    habit_detected_n:'Detekovány {n} skryté úniky peněz',
+    habit_loss_label:'Očekávaná roční ztráta', habit_risk_label:'Míra rizika (Kolísavost)',
+    var_stable:'Stabilní trend', var_mild:'Mírná kolísavost', var_high:'Vyšší kolísavost',
+    mode_autopilot:'✈ Plně autonomní Autopilot', mode_kopilot:'🤝 Schvalovací Kopilot',
+    mode_hint_autopilot:'Agent provádí transakce samostatně na pozadí.',
+    mode_hint_kopilot:'Agent před každou transakcí zašle push notifikaci ke schválení.',
+    btn_open_mifid:'Spustit agenta (MiFID)', btn_reset:'Resetovat stav',
+    btn_run_autopilot:'Vyhodnotit a spustit autonomního pilota',
+    btn_run_kopilot:'Vyhodnotit a aktivovat asistenta',
+    log_title:'Real-time Log Autonomního Agenta',
+    log_empty:'Vyplňte MiFID II dotazník a spusťte agenta →',
+    system_connected:'Spojení s Raiffeisenbank Open Banking API (PSD2) úspěšně navázáno. Token validní. Inicializuji zabezpečený audit transakční historie...',
+    system_label:'Systém', spinner_text:'Agent pracuje…',
+    modal_title:'MiFID II Investiční dotazník',
+    modal_subtitle:'Suitability assessment · Směrnice MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body',
+    q1_text:'Jaký je váš investiční horizont?',
+    q1_a:'Méně než 3 roky', q1_b:'3–7 let', q1_c:'Více než 7 let',
+    q2_text:'Jaký pokles portfolia byste unesl/a bez paniky?',
+    q2_a:'Max 5 %', q2_b:'Do 15 %', q2_c:'Více než 20 % pro maximalizaci zisku',
+    q3_text:'Jaké jsou vaše zkušenosti s investováním?',
+    q3_a:'Žádné', q3_b:'Mám spořicí účty a podílové fondy', q3_c:'Obchoduji akcie / ETF',
+    q_error:'⚠ Prosím, odpovězte na všechny 3 otázky před spuštěním agenta.',
+    tt_income_total:'Příjmy celkem', tt_salary:'Pravidelná mzda (15.)',
+    tt_expense_total:'Výdaje celkem', tt_loans:'Splátky hypotéky a úvěrů',
+    tt_housing:'Bydlení a služby', tt_daily:'Běžné nákupy a spotřeba',
+    tt_digital:'Digitální služby a předpl.', tt_leisure:'Restaurace a volný čas',
+    tt_autopilot:'+ AI Autopilot → ETF',
+    score_label:'Skóre',
+    action_transfer_to_savings:'Převod na spoření', action_invest_funds:'Investice ETF',
+    action_agent_thought:'Analýza agenta', action_prediction:'Predikce cash flow',
+    action_execution:'Exekuce', action_wealth_management:'Wealth Management',
+    action_spending_warning:'Analýza výdajů', action_mifid_result:'MiFID II Profil',
+    action_banking_fees:'Poplatky a daně', action_compliance:'Compliance',
+    action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
+    action_biz_model:'Byznys model', action_credit_risk:'Kreditní riziko',
+    profile_konzervativni:'Konzervativní', profile_vyvazeny:'Vyvážený', profile_dynamicky:'Dynamický',
+  },
+  ua: {
+    checking_label:'Поточний рахунок', savings_label:'Ощадний рахунок', portfolio_label:'ETF Портфель',
+    chart_title:'Грошовий потік – 6 місяців історії + 1 місяць прогнозу',
+    legend_income:'Доходи', legend_expense:'Витрати', legend_prediction:'Прогноз (прозорий)',
+    pred_month_suffix:'Прогнозований місяць',
+    story_title:'Історія вашого грошового потоку', story_history:'Історичні події',
+    story_prediction:'Прогнозований розвиток', story_loading_milestones:'Завантажую події...',
+    story_loading_prediction:'Завантажую прогнози...', story_no_data:'Немає даних.',
+    balance_label:'Залишок:',
+    proj_title:'Прогноз інвестиційного портфеля',
+    proj_text:'Якщо AI Автопілот регулярно інвестуватиме зекономлену суму ({pmt}/місяць), прогнозована вартість вашого ETF портфеля через {years} р. складе до {fv}.',
+    proj_rate_note:'(при середній дохідності {rate} % річних, профіль: {profile})',
+    proj_stats:'Статистична модель портфеля для горизонту {years} р.: E[X] = {ev} · σ = {sigma}',
+    proj_sigma_note:'(σ ≈ {pct} % кінцевої вартості, модель RB-ALM-01)',
+    horizon:{1:'Короткострокова мета (3 роки)',2:'Середньострокова мета (5 років)',3:'Довгострокова мета (10 років)'},
+    donut_title:'Структура місячних витрат', donut_subtitle:'за останні 30 днів',
+    donut_center_label:'Загальні витрати',
+    donut_healthy:'✅ Структура витрат в нормі. Жодна категорія не перевищує рекомендованих лімітів.',
+    alarm_title:'AI Попередження:', alarm_segment:'Сегмент',
+    alarm_pct_text:'становить {pct} % ваших витрат.',
+    alarm_limit:'Ліміт здорових фінансів перевищено на {pct} %.',
+    alarm_plan_title:'План дій:',
+    alarm_plan:'Скасувавши невикористовувані послуги, ви зекономите {amount} щомісяця.',
+    alarm_opt_title:'Оптимізація:',
+    alarm_opt:'Перенаправивши цю суму у ваш iShares S&amp;P&nbsp;500 ETF, очікувана вартість активів за 5 років зросте на {amount}.',
+    alarm_opp_title:'Упущена можливість:',
+    alarm_opp:'При нульовій дохідності на поточному рахунку очікувані втрати купівельної спроможності через інфляцію (2,5&nbsp;% річних) за 5 років складуть {amount}.',
+    habit_title:'Аналіз фінансової поведінки', habit_waiting:'Очікує аналізу',
+    habit_waiting_hint:'Запустіть агента для аналізу зразків поведінки →',
+    habit_healthy_label:'Здорові фінанси',
+    habit_healthy_text:'Здорові фінанси – прихованих витоків грошей не виявлено. ✅',
+    habit_detected_1:'Виявлено прихований витік грошей',
+    habit_detected_n:'Виявлено {n} прихованих витоків грошей',
+    habit_loss_label:'Очікувані річні втрати', habit_risk_label:'Рівень ризику (Волатильність)',
+    var_stable:'Стабільна тенденція', var_mild:'Помірна волатильність', var_high:'Висока волатильність',
+    mode_autopilot:'✈ Повністю автономний Автопілот', mode_kopilot:'🤝 Схвалювальний Копілот',
+    mode_hint_autopilot:'Агент виконує транзакції самостійно у фоновому режимі.',
+    mode_hint_kopilot:'Агент надсилатиме push-повідомлення для підтвердження кожної транзакції.',
+    btn_open_mifid:'Запустити агента (MiFID)', btn_reset:'Скинути стан',
+    btn_run_autopilot:'Оцінити і запустити автономного пілота',
+    btn_run_kopilot:'Оцінити і активувати помічника',
+    log_title:'Журнал автономного агента в реальному часі',
+    log_empty:'Заповніть анкету MiFID II і запустіть агента →',
+    system_connected:'З\'єднання з Raiffeisenbank Open Banking API (PSD2) успішно встановлено. Токен дійсний. Ініціалізую безпечний аудит транзакційної історії...',
+    system_label:'Система', spinner_text:'Агент працює…',
+    modal_title:'Інвестиційна анкета MiFID II',
+    modal_subtitle:'Оцінка придатності · Директива MiFID II / IDD · A = 1 бал, B = 2 бали, C = 3 бали',
+    q1_text:'Який ваш інвестиційний горизонт?',
+    q1_a:'Менше 3 років', q1_b:'3–7 років', q1_c:'Більше 7 років',
+    q2_text:'Який спад портфеля ви витримаєте без паніки?',
+    q2_a:'Макс. 5 %', q2_b:'До 15 %', q2_c:'Більше 20 % для максимізації прибутку',
+    q3_text:'Який у вас досвід інвестування?',
+    q3_a:'Жодного', q3_b:'Маю ощадні рахунки та пайові фонди', q3_c:'Торгую акціями / ETF',
+    q_error:'⚠ Будь ласка, дайте відповідь на всі 3 запитання перед запуском агента.',
+    tt_income_total:'Доходи всього', tt_salary:'Регулярна зарплата (15-е)',
+    tt_expense_total:'Витрати всього', tt_loans:'Платежі за іпотекою та кредитами',
+    tt_housing:'Житло та послуги', tt_daily:'Щоденні покупки та споживання',
+    tt_digital:'Цифрові сервіси та підписки', tt_leisure:'Ресторани та дозвілля',
+    tt_autopilot:'+ AI Автопілот → ETF',
+    score_label:'Оцінка',
+    action_transfer_to_savings:'Переказ на заощадження', action_invest_funds:'Інвестиції ETF',
+    action_agent_thought:'Аналіз агента', action_prediction:'Прогноз грошового потоку',
+    action_execution:'Виконання', action_wealth_management:'Управління капіталом',
+    action_spending_warning:'Аналіз витрат', action_mifid_result:'Профіль MiFID II',
+    action_banking_fees:'Комісії та податки', action_compliance:'Compliance',
+    action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
+    action_biz_model:'Бізнес-модель', action_credit_risk:'Кредитний ризик',
+    profile_konzervativni:'Консервативний', profile_vyvazeny:'Збалансований', profile_dynamicky:'Динамічний',
+  },
+  sk: {
+    checking_label:'Bežný účet', savings_label:'Sporiaci účet', portfolio_label:'ETF Portfólio',
+    chart_title:'Cash Flow – 6 mesiacov histórie + 1 mesiac predikcie',
+    legend_income:'Príjmy', legend_expense:'Výdavky', legend_prediction:'Predikcia (priehľadné)',
+    pred_month_suffix:'Predikovaný mesiac',
+    story_title:'Príbeh vášho Cash Flow', story_history:'Historické míľniky',
+    story_prediction:'Predikovaný vývoj', story_loading_milestones:'Načítavam míľniky...',
+    story_loading_prediction:'Načítavam predikcie...', story_no_data:'Žiadne dáta.',
+    balance_label:'Zostatok:',
+    proj_title:'Projekcia investičného portfólia',
+    proj_text:'Ak AI Autopilot bude pravidelne investovať ušetrenú sumu ({pmt}/mesačne), predpokladaná hodnota vášho ETF portfólia za {years} rokov bude až {fv}.',
+    proj_rate_note:'(pri priemernom zhodnotení {rate} % p.a., profil: {profile})',
+    proj_stats:'Štatistický model portfólia pre horizont {years} rokov: E[X] = {ev} · σ = {sigma}',
+    proj_sigma_note:'(σ ≈ {pct} % finálnej hodnoty, model RB-ALM-01)',
+    horizon:{1:'Krátkodobý cieľ za 3 roky',2:'Strednodobý cieľ za 5 rokov',3:'Dlhodobý cieľ za 10 rokov'},
+    donut_title:'Štruktúra mesačných výdavkov', donut_subtitle:'posledných 30 dní',
+    donut_center_label:'Celkové výdavky',
+    donut_healthy:'✅ Štruktúra výdavkov v norme. Žiadna kategória neprekračuje odporúčané limity.',
+    alarm_title:'AI Alarm:', alarm_segment:'Segment',
+    alarm_pct_text:'tvorí {pct} % vašich výdavkov.',
+    alarm_limit:'Limit zdravých financií prekročený o {pct} %.',
+    alarm_plan_title:'Akčný plán:',
+    alarm_plan:'Zrušením nevyužívaných služieb ušetríte presne {amount} mesačne.',
+    alarm_opt_title:'Optimalizácia:',
+    alarm_opt:'Presmerovaním tejto sumy do vášho iShares S&amp;P&nbsp;500 ETF vzrastie očakávaná hodnota majetku za 5 rokov o {amount}.',
+    alarm_opp_title:'Ušlá príležitosť:',
+    alarm_opp:'Pri nulovom zhodnotení na bežnom účte je očakávaná strata kúpnej sily vplyvom inflácie (pri priemernej inflácii 2,5&nbsp;%) za 5 rokov {amount}.',
+    habit_title:'Analýza finančného správania', habit_waiting:'Čaká na analýzu',
+    habit_waiting_hint:'Spustite agenta na analýzu vzorov správania →',
+    habit_healthy_label:'Zdravé financie',
+    habit_healthy_text:'Zdravé financie – neboli zistené žiadne skryté úniky peňazí. ✅',
+    habit_detected_1:'Zistený skrytý únik peňazí',
+    habit_detected_n:'Zistené {n} skryté úniky peňazí',
+    habit_loss_label:'Očakávaná ročná strata', habit_risk_label:'Miera rizika (Kolísavosť)',
+    var_stable:'Stabilný trend', var_mild:'Mierna kolísavosť', var_high:'Vyššia kolísavosť',
+    mode_autopilot:'✈ Plne autonómny Autopilot', mode_kopilot:'🤝 Schvaľovací Kopilot',
+    mode_hint_autopilot:'Agent vykonáva transakcie samostatne na pozadí.',
+    mode_hint_kopilot:'Agent pred každou transakciou odošle push notifikáciu na schválenie.',
+    btn_open_mifid:'Spustiť agenta (MiFID)', btn_reset:'Resetovať stav',
+    btn_run_autopilot:'Vyhodnotit a spustiť autonómneho pilota',
+    btn_run_kopilot:'Vyhodnotit a aktivovať asistenta',
+    log_title:'Real-time Log Autonómneho Agenta',
+    log_empty:'Vyplňte MiFID II dotazník a spustite agenta →',
+    system_connected:'Spojenie s Raiffeisenbank Open Banking API (PSD2) úspešne nadviazané. Token platný. Inicializujem bezpečný audit transakčnej histórie...',
+    system_label:'Systém', spinner_text:'Agent pracuje…',
+    modal_title:'Investičný dotazník MiFID II',
+    modal_subtitle:'Suitability assessment · Smernica MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body',
+    q1_text:'Aký je váš investičný horizont?',
+    q1_a:'Menej ako 3 roky', q1_b:'3–7 rokov', q1_c:'Viac ako 7 rokov',
+    q2_text:'Aký pokles portfólia zvládnete bez paniky?',
+    q2_a:'Max 5 %', q2_b:'Do 15 %', q2_c:'Viac ako 20 % pre maximalizáciu zisku',
+    q3_text:'Aké sú vaše skúsenosti s investovaním?',
+    q3_a:'Žiadne', q3_b:'Mám sporiace účty a podielové fondy', q3_c:'Obchodujem akcie / ETF',
+    q_error:'⚠ Prosím, odpovedzte na všetky 3 otázky pred spustením agenta.',
+    tt_income_total:'Príjmy celkom', tt_salary:'Pravidelná mzda (15.)',
+    tt_expense_total:'Výdavky celkom', tt_loans:'Splátky hypotéky a úverov',
+    tt_housing:'Bývanie a služby', tt_daily:'Bežné nákupy a spotreba',
+    tt_digital:'Digitálne služby a predpl.', tt_leisure:'Reštaurácie a voľný čas',
+    tt_autopilot:'+ AI Autopilot → ETF',
+    score_label:'Skóre',
+    action_transfer_to_savings:'Prevod na sporenie', action_invest_funds:'Investície ETF',
+    action_agent_thought:'Analýza agenta', action_prediction:'Predikcia cash flow',
+    action_execution:'Exekúcia', action_wealth_management:'Správa majetku',
+    action_spending_warning:'Analýza výdavkov', action_mifid_result:'Profil MiFID II',
+    action_banking_fees:'Poplatky a dane', action_compliance:'Compliance',
+    action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
+    action_biz_model:'Biznis model', action_credit_risk:'Kreditné riziko',
+    profile_konzervativni:'Konzervatívny', profile_vyvazeny:'Vyvážený', profile_dynamicky:'Dynamický',
+  },
+  vn: {
+    checking_label:'Tài khoản thanh toán', savings_label:'Tài khoản tiết kiệm', portfolio_label:'Danh mục ETF',
+    chart_title:'Dòng tiền – 6 tháng lịch sử + 1 tháng dự báo',
+    legend_income:'Thu nhập', legend_expense:'Chi tiêu', legend_prediction:'Dự báo (trong suốt)',
+    pred_month_suffix:'Tháng dự báo',
+    story_title:'Câu chuyện dòng tiền của bạn', story_history:'Các cột mốc lịch sử',
+    story_prediction:'Dự báo phát triển', story_loading_milestones:'Đang tải cột mốc...',
+    story_loading_prediction:'Đang tải dự báo...', story_no_data:'Không có dữ liệu.',
+    balance_label:'Số dư:',
+    proj_title:'Dự báo danh mục đầu tư',
+    proj_text:'Nếu AI Autopilot đầu tư đều đặn số tiền tiết kiệm ({pmt}/tháng), giá trị dự báo của danh mục ETF sau {years} năm sẽ đạt {fv}.',
+    proj_rate_note:'(lợi suất trung bình {rate} % năm, hồ sơ: {profile})',
+    proj_stats:'Mô hình thống kê danh mục cho kỳ hạn {years} năm: E[X] = {ev} · σ = {sigma}',
+    proj_sigma_note:'(σ ≈ {pct} % giá trị cuối, mô hình RB-ALM-01)',
+    horizon:{1:'Mục tiêu ngắn hạn (3 năm)',2:'Mục tiêu trung hạn (5 năm)',3:'Mục tiêu dài hạn (10 năm)'},
+    donut_title:'Cơ cấu chi tiêu hàng tháng', donut_subtitle:'30 ngày gần đây',
+    donut_center_label:'Tổng chi tiêu',
+    donut_healthy:'✅ Cơ cấu chi tiêu bình thường. Không có danh mục nào vượt giới hạn khuyến nghị.',
+    alarm_title:'Cảnh báo AI:', alarm_segment:'Phân khúc',
+    alarm_pct_text:'chiếm {pct} % chi tiêu của bạn.',
+    alarm_limit:'Giới hạn tài chính lành mạnh bị vượt {pct} %.',
+    alarm_plan_title:'Kế hoạch hành động:',
+    alarm_plan:'Hủy các dịch vụ không sử dụng, bạn tiết kiệm {amount} mỗi tháng.',
+    alarm_opt_title:'Tối ưu hóa:',
+    alarm_opt:'Chuyển khoản này vào ETF iShares S&amp;P&nbsp;500, giá trị tài sản dự kiến sau 5 năm tăng thêm {amount}.',
+    alarm_opp_title:'Cơ hội bị bỏ lỡ:',
+    alarm_opp:'Với lãi suất 0 % trên tài khoản, tổn thất sức mua do lạm phát (trung bình 2,5&nbsp;%/năm) trong 5 năm ước tính là {amount}.',
+    habit_title:'Phân tích hành vi tài chính', habit_waiting:'Chờ phân tích',
+    habit_waiting_hint:'Chạy agent để phân tích mẫu hành vi →',
+    habit_healthy_label:'Tài chính lành mạnh',
+    habit_healthy_text:'Tài chính lành mạnh – không phát hiện rò rỉ tiền ẩn nào. ✅',
+    habit_detected_1:'Phát hiện rò rỉ tiền ẩn',
+    habit_detected_n:'Phát hiện {n} rò rỉ tiền ẩn',
+    habit_loss_label:'Tổn thất hàng năm dự kiến', habit_risk_label:'Mức độ rủi ro (Biến động)',
+    var_stable:'Xu hướng ổn định', var_mild:'Biến động vừa phải', var_high:'Biến động cao',
+    mode_autopilot:'✈ Autopilot hoàn toàn tự động', mode_kopilot:'🤝 Copilot phê duyệt',
+    mode_hint_autopilot:'Agent thực hiện giao dịch độc lập ở chế độ nền.',
+    mode_hint_kopilot:'Agent sẽ gửi thông báo push để phê duyệt mỗi giao dịch.',
+    btn_open_mifid:'Chạy agent (MiFID)', btn_reset:'Đặt lại trạng thái',
+    btn_run_autopilot:'Đánh giá và khởi động pilot tự động',
+    btn_run_kopilot:'Đánh giá và kích hoạt trợ lý',
+    log_title:'Nhật ký Agent tự động theo thời gian thực',
+    log_empty:'Điền bảng câu hỏi MiFID II và chạy agent →',
+    system_connected:'Kết nối với Raiffeisenbank Open Banking API (PSD2) thành công. Token hợp lệ. Khởi tạo kiểm tra lịch sử giao dịch an toàn...',
+    system_label:'Hệ thống', spinner_text:'Agent đang làm việc…',
+    modal_title:'Bảng câu hỏi đầu tư MiFID II',
+    modal_subtitle:'Đánh giá phù hợp · Chỉ thị MiFID II / IDD · A = 1 điểm, B = 2 điểm, C = 3 điểm',
+    q1_text:'Kỳ vọng đầu tư của bạn là bao lâu?',
+    q1_a:'Dưới 3 năm', q1_b:'3–7 năm', q1_c:'Trên 7 năm',
+    q2_text:'Bạn có thể chịu mức giảm danh mục nào mà không hoảng loạn?',
+    q2_a:'Tối đa 5 %', q2_b:'Đến 15 %', q2_c:'Trên 20 % để tối đa hóa lợi nhuận',
+    q3_text:'Kinh nghiệm đầu tư của bạn như thế nào?',
+    q3_a:'Không có', q3_b:'Có tài khoản tiết kiệm và quỹ đầu tư', q3_c:'Giao dịch cổ phiếu / ETF',
+    q_error:'⚠ Vui lòng trả lời tất cả 3 câu hỏi trước khi chạy agent.',
+    tt_income_total:'Tổng thu nhập', tt_salary:'Lương định kỳ (ngày 15)',
+    tt_expense_total:'Tổng chi tiêu', tt_loans:'Trả góp thế chấp và vay',
+    tt_housing:'Nhà ở và dịch vụ', tt_daily:'Mua sắm hàng ngày',
+    tt_digital:'Dịch vụ số và đăng ký', tt_leisure:'Nhà hàng và giải trí',
+    tt_autopilot:'+ AI Autopilot → ETF',
+    score_label:'Điểm số',
+    action_transfer_to_savings:'Chuyển vào tiết kiệm', action_invest_funds:'Đầu tư ETF',
+    action_agent_thought:'Phân tích agent', action_prediction:'Dự báo dòng tiền',
+    action_execution:'Thực thi', action_wealth_management:'Quản lý tài sản',
+    action_spending_warning:'Phân tích chi tiêu', action_mifid_result:'Hồ sơ MiFID II',
+    action_banking_fees:'Phí và thuế', action_compliance:'Tuân thủ',
+    action_risk_engine:'Công cụ rủi ro', action_liquidity_guard:'Bảo vệ thanh khoản',
+    action_biz_model:'Mô hình kinh doanh', action_credit_risk:'Rủi ro tín dụng',
+    profile_konzervativni:'Bảo thủ', profile_vyvazeny:'Cân bằng', profile_dynamicky:'Năng động',
+  },
+  ru: {
+    checking_label:'Текущий счёт', savings_label:'Сберегательный счёт', portfolio_label:'ETF Портфель',
+    chart_title:'Денежный поток – 6 месяцев истории + 1 месяц прогноза',
+    legend_income:'Доходы', legend_expense:'Расходы', legend_prediction:'Прогноз (прозрачный)',
+    pred_month_suffix:'Прогнозируемый месяц',
+    story_title:'История вашего денежного потока', story_history:'Исторические события',
+    story_prediction:'Прогнозируемое развитие', story_loading_milestones:'Загружаю события...',
+    story_loading_prediction:'Загружаю прогнозы...', story_no_data:'Нет данных.',
+    balance_label:'Баланс:',
+    proj_title:'Прогноз инвестиционного портфеля',
+    proj_text:'Если AI Автопилот будет регулярно инвестировать сэкономленную сумму ({pmt}/месяц), прогнозируемая стоимость ETF портфеля через {years} лет составит до {fv}.',
+    proj_rate_note:'(при средней доходности {rate} % годовых, профиль: {profile})',
+    proj_stats:'Статистическая модель портфеля для горизонта {years} лет: E[X] = {ev} · σ = {sigma}',
+    proj_sigma_note:'(σ ≈ {pct} % итоговой стоимости, модель RB-ALM-01)',
+    horizon:{1:'Краткосрочная цель (3 года)',2:'Среднесрочная цель (5 лет)',3:'Долгосрочная цель (10 лет)'},
+    donut_title:'Структура ежемесячных расходов', donut_subtitle:'за последние 30 дней',
+    donut_center_label:'Общие расходы',
+    donut_healthy:'✅ Структура расходов в норме. Ни одна категория не превышает рекомендованных лимитов.',
+    alarm_title:'AI Предупреждение:', alarm_segment:'Сегмент',
+    alarm_pct_text:'составляет {pct} % ваших расходов.',
+    alarm_limit:'Лимит здоровых финансов превышен на {pct} %.',
+    alarm_plan_title:'План действий:',
+    alarm_plan:'Отменив неиспользуемые услуги, вы сэкономите {amount} ежемесячно.',
+    alarm_opt_title:'Оптимизация:',
+    alarm_opt:'Перенаправив эту сумму в iShares S&amp;P&nbsp;500 ETF, ожидаемая стоимость активов за 5 лет вырастет на {amount}.',
+    alarm_opp_title:'Упущенная возможность:',
+    alarm_opp:'При нулевой доходности на текущем счёте ожидаемые потери покупательной способности из-за инфляции (2,5&nbsp;% в год) за 5 лет составят {amount}.',
+    habit_title:'Анализ финансового поведения', habit_waiting:'Ожидает анализа',
+    habit_waiting_hint:'Запустите агента для анализа паттернов поведения →',
+    habit_healthy_label:'Здоровые финансы',
+    habit_healthy_text:'Здоровые финансы – скрытых утечек денег не обнаружено. ✅',
+    habit_detected_1:'Обнаружена скрытая утечка денег',
+    habit_detected_n:'Обнаружены {n} скрытые утечки денег',
+    habit_loss_label:'Ожидаемые ежегодные потери', habit_risk_label:'Уровень риска (Волатильность)',
+    var_stable:'Стабильная тенденция', var_mild:'Умеренная волатильность', var_high:'Высокая волатильность',
+    mode_autopilot:'✈ Полностью автономный Автопилот', mode_kopilot:'🤝 Согласующий Копилот',
+    mode_hint_autopilot:'Агент выполняет транзакции самостоятельно в фоновом режиме.',
+    mode_hint_kopilot:'Агент отправляет push-уведомление для подтверждения каждой транзакции.',
+    btn_open_mifid:'Запустить агента (MiFID)', btn_reset:'Сбросить состояние',
+    btn_run_autopilot:'Оценить и запустить автономного пилота',
+    btn_run_kopilot:'Оценить и активировать помощника',
+    log_title:'Журнал автономного агента в реальном времени',
+    log_empty:'Заполните анкету MiFID II и запустите агента →',
+    system_connected:'Соединение с Raiffeisenbank Open Banking API (PSD2) успешно установлено. Токен действителен. Инициализирую безопасный аудит истории транзакций...',
+    system_label:'Система', spinner_text:'Агент работает…',
+    modal_title:'Инвестиционная анкета MiFID II',
+    modal_subtitle:'Оценка пригодности · Директива MiFID II / IDD · A = 1 балл, B = 2 балла, C = 3 балла',
+    q1_text:'Каков ваш инвестиционный горизонт?',
+    q1_a:'Менее 3 лет', q1_b:'3–7 лет', q1_c:'Более 7 лет',
+    q2_text:'Какое падение портфеля вы выдержите без паники?',
+    q2_a:'Макс. 5 %', q2_b:'До 15 %', q2_c:'Более 20 % для максимизации прибыли',
+    q3_text:'Каков ваш опыт инвестирования?',
+    q3_a:'Никакого', q3_b:'Имею сберегательные счета и паевые фонды', q3_c:'Торгую акциями / ETF',
+    q_error:'⚠ Пожалуйста, ответьте на все 3 вопроса перед запуском агента.',
+    tt_income_total:'Доходы всего', tt_salary:'Регулярная зарплата (15-е)',
+    tt_expense_total:'Расходы всего', tt_loans:'Платежи по ипотеке и кредитам',
+    tt_housing:'Жильё и услуги', tt_daily:'Ежедневные покупки и потребление',
+    tt_digital:'Цифровые сервисы и подписки', tt_leisure:'Рестораны и досуг',
+    tt_autopilot:'+ AI Автопилот → ETF',
+    score_label:'Оценка',
+    action_transfer_to_savings:'Перевод на сбережения', action_invest_funds:'Инвестиции ETF',
+    action_agent_thought:'Анализ агента', action_prediction:'Прогноз денежного потока',
+    action_execution:'Исполнение', action_wealth_management:'Управление активами',
+    action_spending_warning:'Анализ расходов', action_mifid_result:'Профиль MiFID II',
+    action_banking_fees:'Комиссии и налоги', action_compliance:'Compliance',
+    action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
+    action_biz_model:'Бизнес-модель', action_credit_risk:'Кредитный риск',
+    profile_konzervativni:'Консервативный', profile_vyvazeny:'Сбалансированный', profile_dynamicky:'Динамичный',
+  },
+};
+
+function _ui(key) {
+  const s = LANG_STRINGS[currentLang] || {};
+  return (s[key] !== undefined ? s[key] : (LANG_STRINGS.cz[key] ?? ''));
+}
+
+function _uifmt(key, vars) {
+  let t = _ui(key);
+  for (const [k, v] of Object.entries(vars)) t = t.replaceAll('{' + k + '}', v);
+  return t;
+}
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = _ui(key);
+    if (val !== '') el.innerHTML = val;
+  });
+  // Lang button active styling
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    const active = b.dataset.lang === currentLang;
+    b.className = b.className.replace(/text-\S+/g, '');
+    b.classList.add(active ? 'text-yellow-400' : 'text-neutral-600', 'hover:text-white');
+  });
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('rb_lang', lang);
+  applyTranslations();
+  // re-fetch with new lang so backend generates translated months/categories/stories
+  fetchState();
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 const fmt = (n) => new Intl.NumberFormat('cs-CZ').format(Math.round(n)) + ' Kč';
 const fmtDate = (s) => new Date(s).toLocaleDateString('cs-CZ', {day:'2-digit',month:'2-digit'});
-// Human label for spending-habit variance (risk / predictability)
 const varLabel = (v) =>
-  v < 0.0012 ? 'Stabilní trend' :
-  v < 0.0022 ? 'Mírná kolísavost' :
-               'Vyšší kolísavost';
+  v < 0.0012 ? _ui('var_stable') :
+  v < 0.0022 ? _ui('var_mild') :
+               _ui('var_high');
 
 // ── Mode toggle: Autopilot / Kopilot ─────────────────────────────────────────
 let agentMode = 'autopilot';
 
 const MODE_CONFIG = {
   autopilot: {
-    hint:    'Agent provádí transakce samostatně na pozadí.',
-    btnRun:  'Vyhodnotit a spustit autonomního pilota',
-    sliderX: '',                  // stays at left
+    hintKey:   'mode_hint_autopilot',
+    btnRunKey: 'btn_run_autopilot',
+    sliderX:   '',
   },
   kopilot: {
-    hint:    'Agent před každou transakcí zašle push notifikaci ke schválení.',
-    btnRun:  'Vyhodnotit a aktivovat asistenta',
-    sliderX: 'translateX(100%)',  // slides to right half
+    hintKey:   'mode_hint_kopilot',
+    btnRunKey: 'btn_run_kopilot',
+    sliderX:   'translateX(100%)',
   },
 };
 
@@ -480,8 +870,8 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
       b.classList.toggle('font-semibold',    !active);
     });
 
-    document.getElementById('mode-hint').textContent        = cfg.hint;
-    document.getElementById('btn-run-label').textContent    = cfg.btnRun;
+    document.getElementById('mode-hint').textContent        = _ui(cfg.hintKey);
+    document.getElementById('btn-run-label').textContent    = _ui(cfg.btnRunKey);
   });
 });
 
@@ -561,35 +951,27 @@ function buildDonut(data) {
     alarmEl.innerHTML = `
       <div class="rounded-xl border border-orange-500/25 bg-orange-500/5 p-3.5 space-y-2.5">
         <p class="text-xs leading-relaxed text-orange-300">
-          ⚠️ <span class="font-bold">AI Alarm:</span>
-          Segment <span class="font-bold">[${alarm.category}]</span>
-          tvoří <span class="font-bold">${alarm.current_pct}&nbsp;%</span> vašich výdajů.
-          Limit pro zdravé finance překročen
-          o <span class="font-bold">${alarm.excess_pct}&nbsp;%</span>.
+          ⚠️ <span class="font-bold">${_ui('alarm_title')}</span>
+          ${_ui('alarm_segment')} <span class="font-bold">[${alarm.category}]</span>
+          <span class="font-bold">${alarm.current_pct}&nbsp;%</span>
+          ${_uifmt('alarm_pct_text', {pct: alarm.current_pct}).replace(alarm.current_pct + ' %', '')}
+          ${_uifmt('alarm_limit', {pct: alarm.excess_pct})}
         </p>
         <p class="text-xs leading-relaxed text-neutral-400">
-          💡 <span class="font-bold text-neutral-300">Akční plán:</span>
-          Zrušením nevyužívaných služeb ušetříte přesně
-          <span class="font-semibold text-white">${fmt(alarm.monthly_savings)}&nbsp;měsíčně</span>.
+          💡 <span class="font-bold text-neutral-300">${_ui('alarm_plan_title')}</span>
+          ${_uifmt('alarm_plan', {amount: `<span class="font-semibold text-white">${fmt(alarm.monthly_savings)}</span>`})}
         </p>
         <p class="text-xs leading-relaxed text-neutral-400">
-          📈 <span class="font-bold text-neutral-300">Optimalizace:</span>
-          Přesměrováním této částky do vašeho iShares S&amp;P&nbsp;500 ETF vzroste
-          očekávaná hodnota vašeho majetku za 5 let o
-          <span class="font-bold text-yellow-400">${fmt(alarm.etf_5yr_bonus)}</span>.
+          📈 <span class="font-bold text-neutral-300">${_ui('alarm_opt_title')}</span>
+          ${_uifmt('alarm_opt', {amount: `<span class="font-bold text-yellow-400">${fmt(alarm.etf_5yr_bonus)}</span>`})}
         </p>
         <p class="text-xs leading-relaxed text-neutral-400">
-          🏦 <span class="font-bold text-neutral-300">Ušlá příležitost:</span>
-          Při nulovém zhodnocení na běžném účtu je očekávaná ztráta kupní síly
-          vlivem inflace (při průměrné inflaci 2,5&nbsp;%) za 5 let vyčíslena na
-          <span class="font-bold text-red-400">${fmt(alarm.inflation_loss_5yr)}&nbsp;Kč</span>.
+          🏦 <span class="font-bold text-neutral-300">${_ui('alarm_opp_title')}</span>
+          ${_uifmt('alarm_opp', {amount: `<span class="font-bold text-red-400">${fmt(alarm.inflation_loss_5yr)}&nbsp;Kč</span>`})}
         </p>
       </div>`;
   } else {
-    alarmEl.innerHTML = `
-      <p class="text-xs text-green-400">
-        ✅ Struktura výdajů v normě. Žádná kategorie nepřekračuje doporučené limity.
-      </p>`;
+    alarmEl.innerHTML = `<p class="text-xs text-green-400">${_ui('donut_healthy')}</p>`;
   }
 }
 
@@ -662,30 +1044,28 @@ function buildChart(data) {
               const idx = items[0]?.dataIndex;
               const tt  = tooltips[idx];
               return tt?.is_prediction
-                ? `${months[idx]}  ·  Predikovaný měsíc`
+                ? `${months[idx]}  ·  ${_ui('pred_month_suffix')}`
                 : (months[idx] ?? '');
             },
             label: (c) => {
               const idx = c.dataIndex;
               const tt  = tooltips[idx] ?? {};
               if (c.datasetIndex === 0) {
-                // Income bar
                 const salary = tt.total_income ?? 0;
                 return salary > 0
-                  ? [` Příjmy celkem: ${n.format(Math.round(c.parsed.y))} Kč`,
-                     `   Pravidelná mzda (15.): ${n.format(salary)} Kč`]
-                  : [` Příjmy celkem: ${n.format(Math.round(c.parsed.y))} Kč`];
+                  ? [` ${_ui('tt_income_total')}: ${n.format(Math.round(c.parsed.y))} Kč`,
+                     `   ${_ui('tt_salary')}: ${n.format(salary)} Kč`]
+                  : [` ${_ui('tt_income_total')}: ${n.format(Math.round(c.parsed.y))} Kč`];
               } else {
-                // Expense bar – 5 clean banking categories
                 const lines = [
-                  ` Výdaje celkem: ${n.format(Math.round(c.parsed.y))} Kč`,
-                  `   Splátky hypotéky a úvěrů:   ${n.format(tt.cat_loans   ?? 0)} Kč`,
-                  `   Bydlení a služby:            ${n.format(tt.cat_housing ?? 0)} Kč`,
-                  `   Běžné nákupy a spotřeba:     ${n.format(tt.cat_daily   ?? 0)} Kč`,
-                  `   Digitální služby a předpl.:  ${n.format(tt.cat_digital ?? 0)} Kč`,
-                  `   Restaurace a volný čas:      ${n.format(tt.cat_leisure ?? 0)} Kč`,
+                  ` ${_ui('tt_expense_total')}: ${n.format(Math.round(c.parsed.y))} Kč`,
+                  `   ${_ui('tt_loans')}:   ${n.format(tt.cat_loans   ?? 0)} Kč`,
+                  `   ${_ui('tt_housing')}:            ${n.format(tt.cat_housing ?? 0)} Kč`,
+                  `   ${_ui('tt_daily')}:     ${n.format(tt.cat_daily   ?? 0)} Kč`,
+                  `   ${_ui('tt_digital')}:  ${n.format(tt.cat_digital ?? 0)} Kč`,
+                  `   ${_ui('tt_leisure')}:      ${n.format(tt.cat_leisure ?? 0)} Kč`,
                 ];
-                if (tt.ai_autopilot) lines.push(`   + AI Autopilot → ETF: ${n.format(tt.ai_autopilot)} Kč`);
+                if (tt.ai_autopilot) lines.push(`   ${_ui('tt_autopilot')}: ${n.format(tt.ai_autopilot)} Kč`);
                 return lines;
               }
             },
@@ -718,13 +1098,15 @@ function renderHabitWidget(habits) {
 
   if (!habits || habits.length === 0) {
     indicator.className = 'w-3 h-3 rounded-full bg-green-500 shrink-0 transition-all duration-300';
-    label.textContent   = 'Zdravé finance';
+    label.textContent   = _ui('habit_healthy_label');
     label.className     = 'ml-auto text-xs text-green-400 font-semibold';
-    content.innerHTML   = '<p class="text-xs text-neutral-500">Zdravé finance – nebyly detekovány žádné skryté úniky peněz. ✅</p>';
+    content.innerHTML   = `<p class="text-xs text-neutral-500">${_ui('habit_healthy_text')}</p>`;
     return;
   }
   indicator.className = 'w-3 h-3 rounded-full bg-orange-400 shrink-0 transition-all duration-300 animate-pulse';
-  label.textContent   = habits.length > 1 ? `Detekovány ${habits.length} skryté úniky peněz` : 'Detekován skrytý únik peněz';
+  label.textContent   = habits.length > 1
+    ? _uifmt('habit_detected_n', {n: habits.length})
+    : _ui('habit_detected_1');
   label.className     = 'ml-auto text-xs text-orange-400 font-semibold';
   content.innerHTML   = habits.map(h => `
     <div class="mt-2 bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 space-y-2">
@@ -735,11 +1117,11 @@ function renderHabitWidget(habits) {
       <p class="text-xs text-neutral-400">${h.detail}</p>
       <div class="flex gap-6 pt-1">
         <div>
-          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">Očekávaná roční ztráta</p>
+          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">${_ui('habit_loss_label')}</p>
           <p class="text-sm font-bold text-red-400">${fmt(h.ev_loss)}</p>
         </div>
         <div>
-          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">Míra rizika (Kolísavost)</p>
+          <p class="text-xs text-neutral-600 uppercase tracking-widest mb-0.5">${_ui('habit_risk_label')}</p>
           <p class="text-sm font-bold text-orange-400">${varLabel(h.variance)}</p>
           <p class="text-xs text-neutral-700 mt-0.5">(Var&nbsp;=&nbsp;${h.variance.toFixed(4)})</p>
         </div>
@@ -768,11 +1150,13 @@ const ACTION_META = {
 function renderLog(entries) {
   const box = document.getElementById('log-box');
   if (!entries || entries.length === 0) {
-    box.innerHTML = '<p class="text-xs text-neutral-600 italic">Vyplňte MiFID II dotazník a spusťte agenta →</p>';
+    box.innerHTML = `<p class="text-xs text-neutral-600 italic">${_ui('log_empty')}</p>`;
     return;
   }
   box.innerHTML = entries.map((e) => {
-    const meta = ACTION_META[e.action] || { label: e.action, color: 'text-neutral-300', icon: '•' };
+    const base = ACTION_META[e.action] || { label: e.action, color: 'text-neutral-300', icon: '•' };
+    const translatedLabel = _ui('action_' + e.action) || base.label;
+    const meta = { ...base, label: translatedLabel };
     const time = e.ts.split('T')[1]?.slice(0, 8) ?? e.ts;
     return `
       <div class="log-entry flex gap-3 text-xs leading-relaxed">
@@ -814,7 +1198,7 @@ function renderStory(story) {
       <div class="flex items-center justify-between pt-1.5 mt-1.5 border-t border-white/5">
         <span class="text-xs font-bold tabular-nums ${LBL_CLR[e.type]}">${pfx}${fmt(e.amount)}</span>
         ${e.balance != null
-          ? `<span class="text-xs text-neutral-600">Zůstatek:&nbsp;<span class="font-semibold text-neutral-300">${fmt(e.balance)}</span></span>`
+          ? `<span class="text-xs text-neutral-600">${_ui('balance_label')}&nbsp;<span class="font-semibold text-neutral-300">${fmt(e.balance)}</span></span>`
           : ''}
       </div>` : '';
     return `
@@ -829,7 +1213,7 @@ function renderStory(story) {
       </div>`;
   };
 
-  const empty = '<p class="text-xs text-neutral-700 italic">Žádná data.</p>';
+  const empty = `<p class="text-xs text-neutral-700 italic">${_ui('story_no_data')}</p>`;
   histBox.innerHTML = (story.history_events    || []).map(card).join('') || empty;
   predBox.innerHTML = (story.prediction_events || []).map(card).join('') || empty;
 
@@ -844,7 +1228,7 @@ function renderStory(story) {
 // ── State fetch ──────────────────────────────────────────────────────────────
 async function fetchState() {
   try {
-    const res = await fetch('/api/state');
+    const res = await fetch(`/api/state?lang=${currentLang}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d = await res.json();
 
@@ -901,20 +1285,23 @@ function renderProjection(data) {
   if (!inner) return;
   const n    = new Intl.NumberFormat('cs-CZ');
   const fmtK = (v) => n.format(Math.round(v)) + ' Kč';
+  const projText = _uifmt('proj_text', {
+    pmt:   `<strong>${fmtK(data.monthly_pmt)}</strong>`,
+    years: `<strong>${data.years}</strong>`,
+    fv:    `<strong class="text-yellow-300 text-base">${fmtK(data.fv)}</strong>`,
+  });
+  const rateNote  = _uifmt('proj_rate_note', { rate: data.annual_rate, profile: data.profile_label });
+  const stats     = _uifmt('proj_stats', { years: data.years, ev: fmtK(data.ev), sigma: fmtK(data.sigma) });
+  const sigNote   = _uifmt('proj_sigma_note', { pct: Math.round(data.sigma / data.fv * 100) });
   inner.innerHTML = `
     <p class="text-sm text-neutral-200 leading-relaxed">
       <span class="text-yellow-400 font-semibold">🎯 ${data.goal_label}:</span>
-      Pokud AI Autopilot bude pravidelně investovat ušetřenou částku
-      (<strong>${fmtK(data.monthly_pmt)}/měsíčně</strong>),
-      předpokládaná hodnota vašeho ETF portfolia za <strong>${data.years} let</strong> bude činit
-      až <strong class="text-yellow-300 text-base">${fmtK(data.fv)}</strong>.
-      <span class="text-xs text-neutral-500">(při průměrném zhodnocení ${data.annual_rate} % p.a.,
-      profil: ${data.profile_label})</span>
+      ${projText}
+      <span class="text-xs text-neutral-500">${rateNote}</span>
     </p>
     <p class="text-xs text-neutral-600 leading-relaxed font-mono mt-1">
-      Statistický model portfolia pro horizont ${data.years} let:
-      E[X] = ${fmtK(data.ev)} · σ = ${fmtK(data.sigma)}
-      <span class="text-neutral-700">(σ ≈ ${Math.round(data.sigma / data.fv * 100)} % finální hodnoty, model RB-ALM-01)</span>
+      ${stats}
+      <span class="text-neutral-700">${sigNote}</span>
     </p>`;
 }
 
@@ -940,6 +1327,7 @@ function updateProjection(overrideData) {
   const fv         = computeFV(15000, horizon.years, 0.08);
   const variance   = PROFILE_VARIANCE[profileKey] ?? 0.008;
   const sigma      = Math.round(fv * Math.sqrt(variance) * Math.sqrt(horizon.years));
+  const langHorizon = (_ui('horizon') || {})[q1] || horizon.label;
 
   renderProjection({
     fv,
@@ -948,8 +1336,8 @@ function updateProjection(overrideData) {
     years:       horizon.years,
     monthly_pmt: 15000,
     annual_rate: 8.0,
-    goal_label:  horizon.label,
-    profile_label: PROFILE_UI[profileKey]?.label ?? profileKey,
+    goal_label:  langHorizon,
+    profile_label: _ui('profile_' + profileKey) || PROFILE_UI[profileKey]?.label || profileKey,
   });
   box.style.display = '';
 }
@@ -964,8 +1352,9 @@ function updateScoreBadge() {
 
   const score = v1 + v2 + v3;
   const p = PROFILE_UI[scoreToKey(score)];
+  const pLabel = _ui('profile_' + scoreToKey(score)) || p.label;
   badge.innerHTML =
-    `Skóre: <span class="font-bold text-white mx-1">${score}/9</span>→ <span class="${p.cls} font-bold ml-1">${p.label}</span>`;
+    `${_ui('score_label')}: <span class="font-bold text-white mx-1">${score}/9</span>→ <span class="${p.cls} font-bold ml-1">${pLabel}</span>`;
   badge.style.display = 'flex';
   document.getElementById('q-error').classList.add('hidden');
 }
@@ -998,8 +1387,8 @@ function _systemLogHtml(ts) {
     <span class="shrink-0 text-neutral-600 font-mono pt-0.5">${ts}</span>
     <span class="shrink-0">⚙️</span>
     <div>
-      <span class="font-semibold text-emerald-400">Systém</span>
-      <p class="text-neutral-500 mt-0.5">Spojení s Raiffeisenbank Open Banking API (PSD2) úspěšně navázáno. Token validní. Inicializuji zabezpečený audit transakční historie...</p>
+      <span class="font-semibold text-emerald-400">${_ui('system_label')}</span>
+      <p class="text-neutral-500 mt-0.5">${_ui('system_connected')}</p>
     </div>
   </div>`;
 }
@@ -1030,9 +1419,10 @@ document.getElementById('btn-run').addEventListener('click', async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        q1: parseInt(q1el.value),
-        q2: parseInt(q2el.value),
-        q3: parseInt(q3el.value),
+        q1:   parseInt(q1el.value),
+        q2:   parseInt(q2el.value),
+        q3:   parseInt(q3el.value),
+        lang: currentLang,
       }),
     });
     const d = await res.json();
@@ -1041,10 +1431,12 @@ document.getElementById('btn-run').addEventListener('click', async () => {
     // Keep system connection line as the first entry in the log
     document.getElementById('log-box').insertAdjacentHTML('afterbegin', _systemLogHtml(sysTs));
     renderHabitWidget(d.detected_habits);
+    if (d.chart_story) renderStory(d.chart_story);
     // Update projection with confirmed backend numbers (uses actual q1 horizon + profile)
     if (d.projection) {
-      const h = HORIZON_MAP[d.horizon_q1] || HORIZON_MAP[2];
-      updateProjection({ ...d.projection, goal_label: h.label });
+      const h  = HORIZON_MAP[d.horizon_q1] || HORIZON_MAP[2];
+      const hl = (_ui('horizon') || {})[d.horizon_q1] || h.label;
+      updateProjection({ ...d.projection, goal_label: hl });
     }
     await fetchState();
   } finally {
@@ -1055,7 +1447,11 @@ document.getElementById('btn-run').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-reset').addEventListener('click', async () => {
-  const res = await fetch('/api/reset', { method: 'POST' });
+  const res = await fetch('/api/reset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lang: currentLang }),
+  });
   const d   = await res.json();
   // Paint all cards immediately from reset response — no wait for fetchState
   document.getElementById('card-checking').textContent  = fmt(d.checking_balance);
@@ -1065,15 +1461,22 @@ document.getElementById('btn-reset').addEventListener('click', async () => {
     `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
   document.getElementById('score-badge').style.display = 'none';
   renderHabitWidget(d.detected_habits);
-  renderStory(d.chart_story);
-  buildDonut(d.expense_donut);
+  if (d.chart_story) renderStory(d.chart_story);
+  if (d.expense_donut) buildDonut(d.expense_donut);
+  if (d.chart) buildChart(d.chart);
   renderLog([]);
   // Recompute projection with new random data but keep current q1 selection
   updateProjection();
   await fetchState();
 });
 
+// ── Language switcher ────────────────────────────────────────────────────────
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLang(btn.dataset.lang));
+});
+
 // ── Init ─────────────────────────────────────────────────────────────────────
+applyTranslations();
 fetchState();
 </script>
 </body>

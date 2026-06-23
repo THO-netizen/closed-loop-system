@@ -451,13 +451,183 @@ def _pick_habit(rng: random.Random) -> dict:
     }
 
 
-def _build_detected_habit(habit: dict) -> list[dict]:
+
+# ---------------------------------------------------------------------------
+# Localisation – all translated strings (months, categories, UI copy, habits)
+# ---------------------------------------------------------------------------
+_T: dict = {
+    "cz": {
+        "months": ["Leden","Únor","Březen","Duben","Květen","Červen",
+                   "Červenec","Srpen","Září","Říjen","Listopad","Prosinec"],
+        "cats": {
+            "loans":   "Splátky hypotéky a úvěrů",
+            "housing": "Bydlení a služby",
+            "daily":   "Běžné nákupy a spotřeba",
+            "digital": "Digitální služby a předpl.",
+            "leisure": "Restaurace a volný čas",
+        },
+        "story": {
+            "income_label":  "Výplata",
+            "expense_label": "Výdajový vrchol",
+            "loans_label":   "Pravidelné závazky 🏠",
+            "agent_label":   "AI Autopilot",
+            "income_text":   "Na účet dorazila pravidelná mzda {salary}. Zůstatek po připsání: {balance}.",
+            "expense_text":  "Výdajový vrchol {amount}: nájemné, energie a výdaj [{habit}]. Zůstatek: {balance}.",
+            "loans_text":    "Odešlo na splátky: {total}. Splátka hypotéky: {mortgage}, Minutová půjčka: {loan}.",
+            "smart_rate":    "[Smart Rate 📉] Raiffeisenbank uplatňuje slevu 0,2 % p.a. na vaši hypotéku.",
+            "agent_text":    "AI Autopilot zkrotil výdaje o ~33 %. Přebytek {amount} přesměrován do ETF. Projekce ETF: {etf}.",
+            "success_fee":   "Success fee 10 % ze zjištěných úspor. Ušetřeno: {savings}, poplatek RB: {fee}.",
+        },
+        "habits": {
+            "gastro_creep":      {"name": "Restaurace a volný čas – zvýšená útrata",            "detail": "meziměsíční nárůst výdajů na stravování mimo domov o 35 %"},
+            "subscription_trap": {"name": "Digitální služby a předplatné – neaktivní platby",   "detail": "6+ neaktivních měsíčních plateb za digitální předplatné"},
+            "weekend_micro":     {"name": "Běžné nákupy a spotřeba – impulsivní výdaje",        "detail": "zvýšená frekvence neplánovaných spotřebních výdajů"},
+            "overpaying":        {"name": "Bydlení a služby – nadstandardní sazby",             "detail": "fixní příkazy za bydlení a služby 20 % nad tržním průměrem"},
+        },
+        "horizon": {1: "Krátkodobý cíl za 3 roky", 2: "Střednědobý cíl za 5 let", 3: "Dlouhodobý cíl za 10 let"},
+    },
+    "ua": {
+        "months": ["Січень","Лютий","Березень","Квітень","Травень","Червень",
+                   "Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"],
+        "cats": {
+            "loans":   "Виплати іпотеки та кредитів",
+            "housing": "Житло та комунальні послуги",
+            "daily":   "Повсякденні покупки",
+            "digital": "Цифрові послуги та підписки",
+            "leisure": "Ресторани та дозвілля",
+        },
+        "story": {
+            "income_label":  "Зарплата",
+            "expense_label": "Пік витрат",
+            "loans_label":   "Регулярні зобов'язання 🏠",
+            "agent_label":   "AI Autopilot",
+            "income_text":   "На рахунок надійшла зарплата {salary}. Залишок після зарахування: {balance}.",
+            "expense_text":  "Пік витрат {amount}: оренда, комунальні та неефективні витрати [{habit}]. Залишок: {balance}.",
+            "loans_text":    "Відправлено на виплати: {total}. Іпотека: {mortgage}, Мікрокредит: {loan}.",
+            "smart_rate":    "[Smart Rate 📉] Raiffeisenbank надає знижку 0,2 % p.a. на вашу іпотеку.",
+            "agent_text":    "AI Autopilot скоротив витрати на ~33 %. Надлишок {amount} переведено в ETF. Прогноз ETF: {etf}.",
+            "success_fee":   "Success fee 10 % з виявлених заощаджень. Заощаджено: {savings}, комісія: {fee}.",
+        },
+        "habits": {
+            "gastro_creep":      {"name": "Ресторани та дозвілля – підвищені витрати",              "detail": "зростання витрат на харчування поза домом на 35 %"},
+            "subscription_trap": {"name": "Цифрові послуги – неактивні підписки",                  "detail": "6+ неактивних щомісячних платежів за цифрові підписки"},
+            "weekend_micro":     {"name": "Повсякденні покупки – імпульсивні витрати",              "detail": "підвищена частота незапланованих покупок"},
+            "overpaying":        {"name": "Житло та послуги – завищені тарифи",                     "detail": "комунальні платежі на 20 % вище середньоринкових"},
+        },
+        "horizon": {1: "Короткострокова мета на 3 роки", 2: "Середньострокова мета на 5 років", 3: "Довгострокова мета на 10 років"},
+    },
+    "sk": {
+        "months": ["Január","Február","Marec","Apríl","Máj","Jún",
+                   "Júl","August","September","Október","November","December"],
+        "cats": {
+            "loans":   "Splátky hypotéky a úverov",
+            "housing": "Bývanie a služby",
+            "daily":   "Bežné nákupy a spotreba",
+            "digital": "Digitálne služby a predpl.",
+            "leisure": "Reštaurácie a voľný čas",
+        },
+        "story": {
+            "income_label":  "Výplata",
+            "expense_label": "Výdajový vrchol",
+            "loans_label":   "Pravidelné záväzky 🏠",
+            "agent_label":   "AI Autopilot",
+            "income_text":   "Na účet prišla pravidelná mzda {salary}. Zostatok po pripísaní: {balance}.",
+            "expense_text":  "Výdajový vrchol {amount}: nájomné, energie a výdavok [{habit}]. Zostatok: {balance}.",
+            "loans_text":    "Odišlo na splátky: {total}. Splátka hypotéky: {mortgage}, Pôžička: {loan}.",
+            "smart_rate":    "[Smart Rate 📉] Raiffeisenbank uplatňuje zľavu 0,2 % p.a. na vašu hypotéku.",
+            "agent_text":    "AI Autopilot znížil výdavky o ~33 %. Prebytok {amount} presmerovaný do ETF. Projekcia ETF: {etf}.",
+            "success_fee":   "Success fee 10 % z odhalených úspor. Ušetrené: {savings}, poplatok RB: {fee}.",
+        },
+        "habits": {
+            "gastro_creep":      {"name": "Reštaurácie a voľný čas – zvýšená útrata",             "detail": "medziměsačný nárast výdavkov na stravovanie mimo domova o 35 %"},
+            "subscription_trap": {"name": "Digitálne služby a predplatné – neaktívne platby",     "detail": "6+ neaktívnych mesačných platieb za digitálne predplatné"},
+            "weekend_micro":     {"name": "Bežné nákupy a spotreba – impulzívne výdavky",         "detail": "zvýšená frekvencia neplánovaných spotrebiteľských výdavkov"},
+            "overpaying":        {"name": "Bývanie a služby – nadštandardné sadzby",              "detail": "fixné príkazy za bývanie 20 % nad trhovou úrovňou"},
+        },
+        "horizon": {1: "Krátkodobý cieľ za 3 roky", 2: "Strednodobý cieľ za 5 rokov", 3: "Dlhodobý cieľ za 10 rokov"},
+    },
+    "vn": {
+        "months": ["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6",
+                   "Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"],
+        "cats": {
+            "loans":   "Trả góp thế chấp và vay",
+            "housing": "Nhà ở và dịch vụ",
+            "daily":   "Mua sắm hàng ngày",
+            "digital": "Dịch vụ số và đăng ký",
+            "leisure": "Nhà hàng và giải trí",
+        },
+        "story": {
+            "income_label":  "Lương",
+            "expense_label": "Đỉnh chi tiêu",
+            "loans_label":   "Nghĩa vụ thường xuyên 🏠",
+            "agent_label":   "AI Autopilot",
+            "income_text":   "Tài khoản nhận lương {salary}. Số dư sau khi nhận: {balance}.",
+            "expense_text":  "Đỉnh chi tiêu {amount}: tiền thuê, điện nước và chi tiêu kém hiệu quả [{habit}]. Số dư: {balance}.",
+            "loans_text":    "Đã thanh toán: {total}. Trả góp thế chấp: {mortgage}, Khoản vay: {loan}.",
+            "smart_rate":    "[Smart Rate 📉] Raiffeisenbank giảm 0,2 % p.a. lãi suất thế chấp của bạn.",
+            "agent_text":    "AI Autopilot giảm chi tiêu ~33 %. {amount} được chuyển vào ETF. Dự báo ETF: {etf}.",
+            "success_fee":   "Success fee 10 % từ khoản tiết kiệm phát hiện. Tiết kiệm: {savings}, phí: {fee}.",
+        },
+        "habits": {
+            "gastro_creep":      {"name": "Nhà hàng và giải trí – chi tiêu tăng cao",             "detail": "chi tiêu ăn ngoài tăng 35% so với tháng trước"},
+            "subscription_trap": {"name": "Dịch vụ số – đăng ký không hoạt động",                "detail": "6+ khoản đăng ký kỹ thuật số không được sử dụng"},
+            "weekend_micro":     {"name": "Mua sắm hàng ngày – chi tiêu bốc đồng",               "detail": "tần suất mua sắm tự phát cao bất thường"},
+            "overpaying":        {"name": "Nhà ở và dịch vụ – mức giá quá cao",                  "detail": "hóa đơn tiện ích cao hơn 20% mức thị trường"},
+        },
+        "horizon": {1: "Mục tiêu ngắn hạn 3 năm", 2: "Mục tiêu trung hạn 5 năm", 3: "Mục tiêu dài hạn 10 năm"},
+    },
+    "ru": {
+        "months": ["Январь","Февраль","Март","Апрель","Май","Июнь",
+                   "Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
+        "cats": {
+            "loans":   "Выплаты ипотеки и кредитов",
+            "housing": "Жильё и коммунальные услуги",
+            "daily":   "Повседневные покупки",
+            "digital": "Цифровые услуги и подписки",
+            "leisure": "Рестораны и досуг",
+        },
+        "story": {
+            "income_label":  "Зарплата",
+            "expense_label": "Пик расходов",
+            "loans_label":   "Регулярные обязательства 🏠",
+            "agent_label":   "AI Autopilot",
+            "income_text":   "На счёт поступила зарплата {salary}. Остаток после зачисления: {balance}.",
+            "expense_text":  "Пик расходов {amount}: аренда, коммунальные и неэффективные расходы [{habit}]. Остаток: {balance}.",
+            "loans_text":    "Отправлено на выплаты: {total}. Выплата ипотеки: {mortgage}, Микрокредит: {loan}.",
+            "smart_rate":    "[Smart Rate 📉] Raiffeisenbank предоставляет скидку 0,2 % p.a. на вашу ипотеку.",
+            "agent_text":    "AI Autopilot снизил расходы на ~33 %. Излишек {amount} направлен в ETF. Прогноз ETF: {etf}.",
+            "success_fee":   "Success fee 10 % с выявленных сбережений. Сэкономлено: {savings}, комиссия: {fee}.",
+        },
+        "habits": {
+            "gastro_creep":      {"name": "Рестораны и досуг – повышенные расходы",              "detail": "рост расходов на питание вне дома на 35 % за месяц"},
+            "subscription_trap": {"name": "Цифровые услуги – неактивные подписки",               "detail": "6+ неактивных ежемесячных платежей за цифровые подписки"},
+            "weekend_micro":     {"name": "Повседневные покупки – импульсивные траты",           "detail": "повышенная частота незапланированных покупок"},
+            "overpaying":        {"name": "Жильё и услуги – завышенные тарифы",                  "detail": "платежи за жильё на 20 % выше рыночного уровня"},
+        },
+        "horizon": {1: "Краткосрочная цель на 3 года", 2: "Среднесрочная цель на 5 лет", 3: "Долгосрочная цель на 10 лет"},
+    },
+}
+
+
+def _t(lang: str, *keys):
+    """Get translation with Czech fallback. Keys navigate nested dicts."""
+    for source in (_T.get(lang, {}), _T["cz"]):
+        node = source
+        for k in keys:
+            node = node.get(k) if isinstance(node, dict) else None
+        if node is not None:
+            return node
+    return ""
+
+
+def _build_detected_habit(habit: dict, lang: str = "cz") -> list[dict]:
     """Build the detected_habits payload from a habit_info dict (no log entry)."""
+    h_t = _t(lang, "habits", habit["scenario"])
     meta = HABIT_META[habit["scenario"]]
     return [{
         "key":      habit["scenario"],
-        "name":     meta["name"],
-        "detail":   meta["detail"],
+        "name":     h_t.get("name", meta["name"])   if isinstance(h_t, dict) else meta["name"],
+        "detail":   h_t.get("detail", meta["detail"]) if isinstance(h_t, dict) else meta["detail"],
         "ev_loss":  habit["ev"],
         "variance": habit["variance"],
     }]
@@ -830,7 +1000,7 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
 # Chart story – single source of truth: all values read from the same arrays
 # the chart sends to the frontend, so cards always match the graph exactly.
 # ---------------------------------------------------------------------------
-def _build_chart_story() -> dict:
+def _build_chart_story(lang: str = "cz") -> dict:
     history    = _state.get("history", [])
     prediction = _state.get("prediction", [])
     last_60    = history[-60:] if len(history) >= 60 else history
@@ -841,98 +1011,87 @@ def _build_chart_story() -> dict:
     def _czk(v: float) -> str:
         return f"{int(round(v)):,}".replace(",", " ") + " Kč"
 
+    s = _T.get(lang, _T["cz"])["story"]   # story translation dict for this lang
+
     history_events: list[dict] = []
 
-    # Card 1: Výplata – balance read directly from chart array, no adjustments
+    # Card 1: income
     salary_hits = [(i, e) for i, e in enumerate(last_60) if e["income"] > 0]
     if salary_hits:
         idx, entry = salary_hits[-1]
-        income_amt = int(entry["income"])   # 65 000 from history
-        bal_after  = int(entry["balance"])  # exact value the chart plots
+        income_amt = int(entry["income"])
+        bal_after  = int(entry["balance"])
         history_events.append({
             "chart_index": idx,
             "date":        entry["date"],
             "type":        "income",
-            "label":       "Výplata",
-            "amount":      bal_after,        # green number = resulting balance
-            "text": (
-                f"Na účet dorazila pravidelná mzda {_czk(income_amt)}. "
-                f"Zůstatek po připsání: {_czk(bal_after)}."
-            ),
+            "label":       s["income_label"],
+            "amount":      bal_after,
+            "text":        s["income_text"].format(salary=_czk(income_amt), balance=_czk(bal_after)),
         })
 
-    # Card 2: Výdajový vrchol – amounts come from the entry, not from formulas
+    # Card 2: expense peak
     big_idx     = max(range(len(last_60)), key=lambda i: last_60[i]["expense"])
     big         = last_60[big_idx]
-    expense_amt = int(big["expense"])       # exact expense the chart reflects
-    bal_at_exp  = int(big["balance"])       # exact balance the chart shows
-    habit_name  = HABIT_META[habit_info["scenario"]]["name"] if habit_info else "Výdaje"
+    expense_amt = int(big["expense"])
+    bal_at_exp  = int(big["balance"])
+    habit_t     = _t(lang, "habits", habit_info["scenario"]) if habit_info else {}
+    habit_name  = (habit_t.get("name") if isinstance(habit_t, dict) else None) or \
+                  (HABIT_META[habit_info["scenario"]]["name"] if habit_info else "")
     history_events.append({
         "chart_index": big_idx,
         "date":        big["date"],
         "type":        "expense",
-        "label":       "Výdajový vrchol",
-        "amount":      expense_amt,          # red number = total expense
-        "balance":     bal_at_exp,           # displayed in footer
-        "text": (
-            f"Výdajový vrchol {_czk(expense_amt)}: nájemné, energie a neefektivní výdaj [{habit_name}]. "
-            f"Zůstatek po odchodu plateb: {_czk(bal_at_exp)}."
-        ),
+        "label":       s["expense_label"],
+        "amount":      expense_amt,
+        "balance":     bal_at_exp,
+        "text":        s["expense_text"].format(amount=_czk(expense_amt), habit=habit_name, balance=_czk(bal_at_exp)),
     })
 
-    # Card 3: Pravidelné závazky – most-recent month's loan payments from history
+    # Card 3: loan payments
     mortgage_payment  = _state.get("mortgage_payment", 18_000)
     mini_loan_payment = _state.get("mini_loan_payment", 4_000)
     loan_total        = mortgage_payment + mini_loan_payment
-
     loan_idx = next(
-        (i for i in range(len(last_60) - 1, -1, -1) if last_60[i].get("mini_loan", 0) > 0),
-        None,
+        (i for i in range(len(last_60) - 1, -1, -1) if last_60[i].get("mini_loan", 0) > 0), None,
     )
     loan_date = last_60[loan_idx]["date"] if loan_idx is not None else last_60[-1]["date"]
     history_events.append({
         "chart_index": loan_idx if loan_idx is not None else hist_len - 1,
         "date":        loan_date,
         "type":        "loans",
-        "label":       "Pravidelné závazky 🏠",
+        "label":       s["loans_label"],
         "amount":      loan_total,
         "balance":     None,
         "text": (
-            f"Odešlo na splátky úvěrů RB: {_czk(loan_total)}. "
-            f"Splátka hypotéky: {_czk(mortgage_payment)}, "
-            f"Minutová půjčka RB: {_czk(mini_loan_payment)}."
-            f"<br>[Smart Rate 📉] Díky tomu, že váš AI Autopilot udržuje výdaje v optimálním pásmu, "
-            f"uplatňuje Raiffeisenbank slevu 0,2 % p.a. na úrokovou sazbu vaší hypotéky pro příští měsíc."
+            s["loans_text"].format(total=_czk(loan_total), mortgage=_czk(mortgage_payment), loan=_czk(mini_loan_payment))
+            + "<br>" + s["smart_rate"]
         ),
     })
 
     prediction_events: list[dict] = []
 
-    # Card 4: AI Autopilot – ETF transfer + habit spending reduction + success fee
+    # Card 4: AI Autopilot
     agent_idx = next((i for i, e in enumerate(prediction) if e.get("is_agent")), None)
     if agent_idx is None:
         agent_idx = min(22, len(prediction) - 1)
-    bal_after_agent  = int(prediction[agent_idx]["balance"])
-    etf_projected    = int(portfolio + SIMULATION_AMOUNT)
-    monthly_savings  = (habit_info["ev"] // 12) if habit_info else 0
-    success_fee      = round(monthly_savings * 0.10)
+    bal_after_agent = int(prediction[agent_idx]["balance"])
+    etf_projected   = int(portfolio + SIMULATION_AMOUNT)
+    monthly_savings = (habit_info["ev"] // 12) if habit_info else 0
+    success_fee     = round(monthly_savings * 0.10)
     prediction_events.append({
         "chart_index":    hist_len + agent_idx,
         "date":           prediction[agent_idx]["date"],
         "type":           "agent",
-        "label":          "AI Autopilot",
+        "label":          s["agent_label"],
         "amount":         SIMULATION_AMOUNT,
         "balance":        bal_after_agent,
         "etf_after":      etf_projected,
         "monthly_savings": monthly_savings,
         "success_fee":    success_fee,
         "text": (
-            f"AI Autopilot detekoval skrytý únik peněz a zkrotil výdaje na Gastro & Subskripce. "
-            f"Variabilní výdaje sníženy o ~33 %. Přebytek {_czk(SIMULATION_AMOUNT)} přesměrován do ETF portfolia. "
-            f"Projekce ETF po převodu: {_czk(etf_projected)}."
-            f"<br>Služba Autopilot je zpoplatněna formou 10% success fee pouze ze zjištěných "
-            f"a optimalizovaných neefektivních výdajů. "
-            f"Tento měsíc ušetřeno: {_czk(monthly_savings)}, poplatek RB: {_czk(success_fee)}."
+            s["agent_text"].format(amount=_czk(SIMULATION_AMOUNT), etf=_czk(etf_projected))
+            + "<br>" + s["success_fee"].format(savings=_czk(monthly_savings), fee=_czk(success_fee))
         ),
     })
 
@@ -940,17 +1099,8 @@ def _build_chart_story() -> dict:
         "history_events":    history_events,
         "prediction_events": prediction_events,
     }
-_CS_MONTHS = [
-    "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
-    "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec",
-]
 
-
-def _month_name_cs(month: int) -> str:
-    return _CS_MONTHS[month - 1]
-
-
-def _build_monthly_chart() -> dict:
+def _build_monthly_chart(lang: str = "cz") -> dict:
     """Aggregate daily history/prediction into monthly grouped bar chart data."""
     history    = _state.get("history", [])
     prediction = _state.get("prediction", [])
@@ -979,7 +1129,7 @@ def _build_monthly_chart() -> dict:
         entries      = monthly[k]
         total_income = _sum_cat(entries, "income")
         total_exp    = _sum_cat(entries, "expense")
-        labels.append(_month_name_cs(k[1]))
+        labels.append(_t(lang, "months")[k[1] - 1])
         income_data.append(total_income)
         expense_data.append(total_exp)
         tooltips.append({
@@ -1002,7 +1152,7 @@ def _build_monthly_chart() -> dict:
         for e in prediction:
             m = date.fromisoformat(e["date"]).month
             month_counts[m] = month_counts.get(m, 0) + 1
-        pred_label = _month_name_cs(max(month_counts, key=month_counts.get))
+        pred_label = _t(lang, "months")[max(month_counts, key=month_counts.get) - 1]
     else:
         pred_label = "Predikce"
 
@@ -1048,8 +1198,7 @@ def _inflation_loss_5yr(ev_annual: float, inflation: float = 0.035) -> int:
     return int(total_nominal - real_value)
 
 
-def _build_expense_donut() -> dict:
-    history    = _state.get("history", [])
+def _build_expense_donut(lang: str = "cz") -> dict:
     habit_info = _state.get("habit_info")
 
     total_expense = _state.get("monthly_expense", 47_000)
@@ -1068,14 +1217,16 @@ def _build_expense_donut() -> dict:
             diff             = 100 - sum(pcts.values())
             pcts[reduce_key] += diff  # normalise to exactly 100 %
 
+    cats_t    = _t(lang, "cats")
     segments: list[dict] = []
     for cat in _EXPENSE_CATS:
         k        = cat["key"]
         pct      = pcts[k]
         is_alarm = k == alarm_key
+        label    = cats_t.get(k, cat["label"]) if isinstance(cats_t, dict) else cat["label"]
         segments.append({
             "key":      k,
-            "label":    cat["label"],
+            "label":    label,
             "pct":      pct,
             "amount":   round(total_expense * pct / 100),
             "color":    "#FF9500" if is_alarm else cat["color"],
@@ -1113,7 +1264,7 @@ async def index(request: Request):
 
 
 @app.get("/api/state")
-async def get_state():
+async def get_state(lang: str = "cz"):
     return JSONResponse({
         "checking_balance": _state["checking_balance"],
         "savings_balance":  _state["savings_balance"],
@@ -1124,17 +1275,18 @@ async def get_state():
         "insurance_amount":   INSURANCE_AMOUNT,
         "agent_log":        _state["agent_log"][-20:],
         "detected_habits":  _state.get("detected_habits"),
-        "chart":            _build_monthly_chart(),
-        "chart_story":      _build_chart_story(),
-        "expense_donut":    _build_expense_donut(),
+        "chart":            _build_monthly_chart(lang),
+        "chart_story":      _build_chart_story(lang),
+        "expense_donut":    _build_expense_donut(lang),
     })
 
 
 @app.post("/api/run-agent")
 async def run_agent_endpoint(body: dict = Body(default={})):
-    q1 = max(1, min(3, int(body.get("q1", 2))))
-    q2 = max(1, min(3, int(body.get("q2", 2))))
-    q3 = max(1, min(3, int(body.get("q3", 2))))
+    q1   = max(1, min(3, int(body.get("q1", 2))))
+    q2   = max(1, min(3, int(body.get("q2", 2))))
+    q3   = max(1, min(3, int(body.get("q3", 2))))
+    lang = body.get("lang", "cz")
 
     risk_profile, score = _score_to_profile(q1, q2, q3)
     profile = RISK_PROFILES[risk_profile]
@@ -1155,7 +1307,8 @@ async def run_agent_endpoint(body: dict = Body(default={})):
         "agent_log":       _state["agent_log"][-20:],
         "risk_profile":    risk_profile,
         "score":           score,
-        "detected_habits": _state.get("detected_habits"),
+        "detected_habits": _build_detected_habit(_state["habit_info"], lang) if _state.get("habit_info") else _state.get("detected_habits"),
+        "chart_story":     _build_chart_story(lang),
         "projection":      _compute_investment_projection(
             SIMULATION_AMOUNT, horizon_years, risk_profile
         ),
@@ -1164,7 +1317,9 @@ async def run_agent_endpoint(body: dict = Body(default={})):
 
 
 @app.post("/api/reset")
-async def reset():
+async def reset(body: dict = Body(default={})):
+    lang = body.get("lang", "cz")
+
     # Seed from os.urandom to guarantee different values on every call,
     # regardless of clock resolution or server environment.
     seed = int.from_bytes(os.urandom(8), "big")
@@ -1188,6 +1343,7 @@ async def reset():
         "portfolio_units":  _state["portfolio_units"],
         "etf_price":        _state["etf_price"],
         "detected_habits":  _state["detected_habits"],
-        "chart_story":      _build_chart_story(),    # story panel updates immediately
-        "expense_donut":    _build_expense_donut(),  # donut updates immediately
+        "chart":            _build_monthly_chart(lang),
+        "chart_story":      _build_chart_story(lang),
+        "expense_donut":    _build_expense_donut(lang),
     })
