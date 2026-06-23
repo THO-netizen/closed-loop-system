@@ -322,6 +322,15 @@
       <span id="step-label" class="text-xs text-neutral-500">Krok 1 ze 3</span>
     </div>
 
+    <!-- Smart MiFID pre-fill notice -->
+    <div class="flex items-start gap-2.5 rounded-xl border border-green-500/15 bg-green-500/5 px-4 py-3">
+      <span class="text-sm leading-none shrink-0 mt-0.5">🔒</span>
+      <p class="text-xs text-neutral-400 leading-relaxed" id="prefill-banner-text">
+        <strong class="text-green-400 font-semibold">Raiffeisen Smart MiFID</strong> —
+        <span data-i18n="prefill_banner">80&nbsp;% legislativních otázek (příjmy, finanční zázemí, identita) jsme automaticky předvyplnili na základě analýzy vašeho běžného účtu a hypotéky RB. Stačí upřesnit vaše cíle a postoj k riziku.</span>
+      </p>
+    </div>
+
     <!-- Step 1: Cíle + Horizont -->
     <div id="mifid-step-1" class="space-y-5">
       <div>
@@ -582,6 +591,8 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Byznys model', action_credit_risk:'Kreditní riziko',
     profile_konzervativni:'Konzervativní', profile_vyvazeny:'Vyvážený', profile_dynamicky:'Dynamický',
+    prefill_banner:'80 % legislativních otázek (příjmy, finanční zázemí, identita) jsme automaticky předvyplnili na základě analýzy vašeho běžného účtu a hypotéky RB. Stačí upřesnit vaše cíle a postoj k riziku.',
+    action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Cílový trh produktu',
     kopilot_title:'Doporučení AI Kopilota',
     kopilot_subtitle:'Kopilot · AI asistent · Potvrzení investice',
     kopilot_question:'Mám pro vás doporučení. Identifikoval jsem bezpečný měsíční přebytek {amount}. Mohu tuto částku investovat do vašeho cíle ({goal})?',
@@ -673,6 +684,8 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Бізнес-модель', action_credit_risk:'Кредитний ризик',
     profile_konzervativni:'Консервативний', profile_vyvazeny:'Збалансований', profile_dynamicky:'Динамічний',
+    prefill_banner:'80 % законодавчих питань (доходи, фінансовий стан, ідентичність) автоматично заповнено на основі аналізу вашого поточного рахунку та іпотеки RB. Залишилося лише уточнити ваші цілі та ставлення до ризику.',
+    action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Цільовий ринок продукту',
     kopilot_title:'Рекомендація AI Копілота',
     kopilot_subtitle:'Копілот · AI помічник · Підтвердження інвестиції',
     kopilot_question:'Маю для вас рекомендацію. Я визначив безпечний місячний надлишок {amount}. Чи можу інвестувати цю суму у вашу мету ({goal})?',
@@ -764,6 +777,8 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Biznis model', action_credit_risk:'Kreditné riziko',
     profile_konzervativni:'Konzervatívny', profile_vyvazeny:'Vyvážený', profile_dynamicky:'Dynamický',
+    prefill_banner:'80 % legislatívnych otázok (príjmy, finančné zázemie, identita) sme automaticky predvyplnili na základe analýzy vášho bežného účtu a hypotéky RB. Stačí upresniť vaše ciele a postoj k riziku.',
+    action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Cieľový trh produktu',
     kopilot_title:'Odporúčanie AI Kopilota',
     kopilot_subtitle:'Kopilot · AI asistent · Potvrdenie investície',
     kopilot_question:'Mám pre vás odporúčanie. Identifikoval som bezpečný mesačný prebytok {amount}. Môžem túto sumu investovať do vášho cieľa ({goal})?',
@@ -855,6 +870,8 @@ const LANG_STRINGS = {
     action_risk_engine:'Công cụ rủi ro', action_liquidity_guard:'Bảo vệ thanh khoản',
     action_biz_model:'Mô hình kinh doanh', action_credit_risk:'Rủi ro tín dụng',
     profile_konzervativni:'Bảo thủ', profile_vyvazeny:'Cân bằng', profile_dynamicky:'Năng động',
+    prefill_banner:'80 % câu hỏi pháp lý (thu nhập, tình hình tài chính, danh tính) đã được tự động điền từ phân tích tài khoản và khoản vay RB của bạn. Chỉ cần xác nhận mục tiêu và thái độ với rủi ro.',
+    action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Thị trường mục tiêu sản phẩm',
     kopilot_title:'Khuyến nghị của AI Copilot',
     kopilot_subtitle:'Copilot · Trợ lý AI · Xác nhận đầu tư',
     kopilot_question:'Tôi có một khuyến nghị cho bạn. Tôi xác định được khoản thặng dư hàng tháng an toàn là {amount}. Tôi có thể đầu tư khoản này vào mục tiêu của bạn ({goal}) không?',
@@ -946,6 +963,8 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Бизнес-модель', action_credit_risk:'Кредитный риск',
     profile_konzervativni:'Консервативный', profile_vyvazeny:'Сбалансированный', profile_dynamicky:'Динамичный',
+    prefill_banner:'80 % законодательных вопросов (доходы, финансовое положение, идентификация) автоматически заполнены на основе анализа вашего текущего счёта и ипотеки RB. Осталось уточнить ваши цели и отношение к риску.',
+    action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Целевой рынок продукта',
     kopilot_title:'Рекомендация AI Копилота',
     kopilot_subtitle:'Копилот · AI помощник · Подтверждение инвестиции',
     kopilot_question:'У меня есть рекомендация для вас. Я определил безопасный ежемесячный профицит {amount}. Могу ли я инвестировать эту сумму в вашу цель ({goal})?',

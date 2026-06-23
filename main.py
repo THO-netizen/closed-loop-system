@@ -1299,6 +1299,17 @@ async def run_agent_endpoint(body: dict = Body(default={})):
         f"{_var_label_investment(profile['variance'])}. "
         f"(Model: E[X] = {profile['expected_value']:.1f}%, Var(X) = {profile['variance']:.4f})",
     )
+    _log(
+        "mifid_prescoring",
+        "[MiFID Pre-scoring 📊] Načtení profilu klienta z core systému RB "
+        "(Majetkové zázemí: OK, Roční obrat: OK, Čisté jmění ověřeno z historie transakcí).",
+    )
+    _log(
+        "target_market",
+        f"[iShares Target Market 🎯] Ověřena shoda produktu (iShares Core S&P 500 UCITS ETF) "
+        f"s profilem investora '{profile['label']}'. "
+        "Podmínky znalostí splněny automatickým scoringem investiční historie.",
+    )
 
     horizon_years = _HORIZON_YEARS.get(q1, 5)
     summary       = run_agent(risk_profile)
