@@ -117,6 +117,41 @@ def _var_label_investment(var: float) -> str:
     return "s vyšší kolísavostí trhu (typické pro dynamický profil)"
 
 
+# q1 answer → concrete year horizon (midpoint / common planning target)
+_HORIZON_YEARS: dict[int, int] = {1: 3, 2: 5, 3: 10}
+
+_HORIZON_LABEL: dict[int, str] = {
+    1: "Krátkodobý cíl za 3 roky",
+    2: "Střednědobý cíl za 5 let",
+    3: "Dlouhodobý cíl za 10 let",
+}
+
+
+def _compute_investment_projection(
+    monthly_pmt: int, years: int, risk_profile_key: str
+) -> dict:
+    """Future Value of regular monthly investment at 8 % p.a. with risk-adjusted σ.
+
+    FV  = PMT × ((1+r)^n − 1) / r          (ordinary annuity, r = 8%/12, n = years×12)
+    σ   = FV × √(profile_variance) × √years  (rough lognormal scaling)
+    E[X] = FV  (deterministic at the fixed rate; variance captures market spread)
+    """
+    profile  = RISK_PROFILES.get(risk_profile_key, RISK_PROFILES["vyvazeny"])
+    r        = 0.08 / 12
+    n        = years * 12
+    fv       = int(monthly_pmt * ((1 + r) ** n - 1) / r)
+    sigma    = int(fv * (profile["variance"] ** 0.5) * (years ** 0.5))
+    return {
+        "monthly_pmt":   monthly_pmt,
+        "years":         years,
+        "annual_rate":   8.0,
+        "fv":            fv,
+        "ev":            fv,
+        "sigma":         sigma,
+        "profile_label": profile["label"],
+    }
+
+
 def _var_label_spending(var: float) -> str:
     """Human-readable risk label for spending-habit context."""
     if var < 0.0012:
@@ -1113,13 +1148,18 @@ async def run_agent_endpoint(body: dict = Body(default={})):
         f"(Model: E[X] = {profile['expected_value']:.1f}%, Var(X) = {profile['variance']:.4f})",
     )
 
-    summary = run_agent(risk_profile)
+    horizon_years = _HORIZON_YEARS.get(q1, 5)
+    summary       = run_agent(risk_profile)
     return JSONResponse({
-        "summary": summary,
-        "agent_log": _state["agent_log"][-20:],
-        "risk_profile": risk_profile,
-        "score": score,
+        "summary":         summary,
+        "agent_log":       _state["agent_log"][-20:],
+        "risk_profile":    risk_profile,
+        "score":           score,
         "detected_habits": _state.get("detected_habits"),
+        "projection":      _compute_investment_projection(
+            SIMULATION_AMOUNT, horizon_years, risk_profile
+        ),
+        "horizon_q1":      q1,
     })
 
 

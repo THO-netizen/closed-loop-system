@@ -152,6 +152,18 @@
         </div>
       </div>
     </div>
+
+    <!-- ── Investment Projection ── -->
+    <div id="fv-projection" style="display:none" class="mt-5 pt-4 border-t border-white/5">
+      <h3 class="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-widest mb-3">
+        <svg class="w-3.5 h-3.5 text-yellow-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/>
+        </svg>
+        Projekce investičního portfolia
+      </h3>
+      <div id="fv-projection-inner" class="rounded-xl border border-yellow-400/15 bg-yellow-400/5 p-4 space-y-2">
+      </div>
+    </div>
   </div>
 
   <!-- ── Expense Donut (Revolut-style) ── -->
@@ -859,8 +871,87 @@ const PROFILE_UI = {
   dynamicky:     { label: 'Dynamický',     cls: 'text-orange-400' },
 };
 
+// Risk profile variance (mirrors RISK_PROFILES in main.py)
+const PROFILE_VARIANCE = {
+  konzervativni: 0.0015,
+  vyvazeny:      0.0080,
+  dynamicky:     0.0250,
+};
+
+// q1 answer → concrete year horizon + motivational label
+const HORIZON_MAP = {
+  1: { years: 3,  label: 'Krátkodobý cíl za 3 roky' },
+  2: { years: 5,  label: 'Střednědobý cíl za 5 let'  },
+  3: { years: 10, label: 'Dlouhodobý cíl za 10 let'  },
+};
+
 function scoreToKey(s) {
   return s <= 4 ? 'konzervativni' : s <= 7 ? 'vyvazeny' : 'dynamicky';
+}
+
+// FV = PMT × ((1+r)^n − 1) / r   (ordinary annuity, r = annualRate/12, n = years×12)
+function computeFV(pmt, years, annualRate) {
+  const r = annualRate / 12;
+  const n = years * 12;
+  return Math.round(pmt * ((1 + r) ** n - 1) / r);
+}
+
+function renderProjection(data) {
+  const inner = document.getElementById('fv-projection-inner');
+  if (!inner) return;
+  const n    = new Intl.NumberFormat('cs-CZ');
+  const fmtK = (v) => n.format(Math.round(v)) + ' Kč';
+  inner.innerHTML = `
+    <p class="text-sm text-neutral-200 leading-relaxed">
+      <span class="text-yellow-400 font-semibold">🎯 ${data.goal_label}:</span>
+      Pokud AI Autopilot bude pravidelně investovat ušetřenou částku
+      (<strong>${fmtK(data.monthly_pmt)}/měsíčně</strong>),
+      předpokládaná hodnota vašeho ETF portfolia za <strong>${data.years} let</strong> bude činit
+      až <strong class="text-yellow-300 text-base">${fmtK(data.fv)}</strong>.
+      <span class="text-xs text-neutral-500">(při průměrném zhodnocení ${data.annual_rate} % p.a.,
+      profil: ${data.profile_label})</span>
+    </p>
+    <p class="text-xs text-neutral-600 leading-relaxed font-mono mt-1">
+      Statistický model portfolia pro horizont ${data.years} let:
+      E[X] = ${fmtK(data.ev)} · σ = ${fmtK(data.sigma)}
+      <span class="text-neutral-700">(σ ≈ ${Math.round(data.sigma / data.fv * 100)} % finální hodnoty, model RB-ALM-01)</span>
+    </p>`;
+}
+
+function updateProjection(overrideData) {
+  const box = document.getElementById('fv-projection');
+  if (!box) return;
+
+  if (overrideData) {
+    renderProjection(overrideData);
+    box.style.display = '';
+    return;
+  }
+
+  const q1 = parseInt(document.querySelector('input[name="q1"]:checked')?.value ?? 0);
+  const v2 = parseInt(document.querySelector('input[name="q2"]:checked')?.value ?? 0);
+  const v3 = parseInt(document.querySelector('input[name="q3"]:checked')?.value ?? 0);
+
+  if (!q1) { box.style.display = 'none'; return; }
+
+  const score      = q1 + (v2 || 2) + (v3 || 2);
+  const profileKey = scoreToKey(score);
+  const horizon    = HORIZON_MAP[q1] || HORIZON_MAP[2];
+  const fv         = computeFV(15000, horizon.years, 0.08);
+  const variance   = PROFILE_VARIANCE[profileKey] ?? 0.008;
+  const sigma      = Math.round(fv * Math.sqrt(variance) * Math.sqrt(horizon.years));
+
+  renderProjection({
+    fv,
+    ev:          fv,
+    sigma,
+    years:       horizon.years,
+    monthly_pmt: 15000,
+    annual_rate: 8.0,
+    goal_label:  horizon.label,
+    profile_label: PROFILE_UI[profileKey]?.label ?? profileKey,
+  });
+  box.style.display = '';
 }
 
 function updateScoreBadge() {
@@ -880,7 +971,7 @@ function updateScoreBadge() {
 }
 
 document.querySelectorAll('input[name="q1"], input[name="q2"], input[name="q3"]')
-  .forEach((r) => r.addEventListener('change', updateScoreBadge));
+  .forEach((r) => r.addEventListener('change', () => { updateScoreBadge(); updateProjection(); }));
 
 // ── Modal open / close ───────────────────────────────────────────────────────
 const modal = document.getElementById('mifid-modal');
@@ -950,6 +1041,11 @@ document.getElementById('btn-run').addEventListener('click', async () => {
     // Keep system connection line as the first entry in the log
     document.getElementById('log-box').insertAdjacentHTML('afterbegin', _systemLogHtml(sysTs));
     renderHabitWidget(d.detected_habits);
+    // Update projection with confirmed backend numbers (uses actual q1 horizon + profile)
+    if (d.projection) {
+      const h = HORIZON_MAP[d.horizon_q1] || HORIZON_MAP[2];
+      updateProjection({ ...d.projection, goal_label: h.label });
+    }
     await fetchState();
   } finally {
     btn.disabled = false;
@@ -972,6 +1068,8 @@ document.getElementById('btn-reset').addEventListener('click', async () => {
   renderStory(d.chart_story);
   buildDonut(d.expense_donut);
   renderLog([]);
+  // Recompute projection with new random data but keep current q1 selection
+  updateProjection();
   await fetchState();
 });
 
