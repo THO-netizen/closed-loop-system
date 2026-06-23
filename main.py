@@ -700,6 +700,20 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
         f"{'splněn' if current_reserve >= reserve_target else 'NESPLNĚN'}. {reserve_ok}",
     )
 
+    _log(
+        "biz_model",
+        f"[Byznys model 💼] Alokace {etf_amount:,} Kč do ETF realizována přes platformu RB Invest "
+        f"(Management Fee 0,75 % p.a. = {round(etf_amount * 0.0075):,} Kč/rok, schváleno dle MiFID II). "
+        f"Success fee za optimalizaci výdajů: 10 % ze zjištěných úspor.",
+    )
+
+    _log(
+        "credit_risk",
+        f"[Kreditní riziko 📊] Index finančního zdraví klienta stoupl na 94/100. "
+        f"Riziko delikvence kleslo o 15 % vlivem pravidelného investičního chování a optimalizace výdajů. "
+        f"Skóre přepočteno na základě cash flow za posledních 6 měsíců (model RB-CREDIT-02).",
+    )
+
     return f"Simulace dokončena. Profil: {profile['label']}. Přesunuto {amount:,} Kč."
 
 
@@ -852,29 +866,38 @@ def _build_chart_story() -> dict:
             f"Odešlo na splátky úvěrů RB: {_czk(loan_total)}. "
             f"Splátka hypotéky: {_czk(mortgage_payment)}, "
             f"Minutová půjčka RB: {_czk(mini_loan_payment)}."
+            f"<br>[Smart Rate 📉] Díky tomu, že váš AI Autopilot udržuje výdaje v optimálním pásmu, "
+            f"uplatňuje Raiffeisenbank slevu 0,2 % p.a. na úrokovou sazbu vaší hypotéky pro příští měsíc."
         ),
     })
 
     prediction_events: list[dict] = []
 
-    # Card 4: AI Autopilot – ETF transfer + habit spending reduction
+    # Card 4: AI Autopilot – ETF transfer + habit spending reduction + success fee
     agent_idx = next((i for i, e in enumerate(prediction) if e.get("is_agent")), None)
     if agent_idx is None:
         agent_idx = min(22, len(prediction) - 1)
-    bal_after_agent = int(prediction[agent_idx]["balance"])
-    etf_projected   = int(portfolio + SIMULATION_AMOUNT)
+    bal_after_agent  = int(prediction[agent_idx]["balance"])
+    etf_projected    = int(portfolio + SIMULATION_AMOUNT)
+    monthly_savings  = (habit_info["ev"] // 12) if habit_info else 0
+    success_fee      = round(monthly_savings * 0.10)
     prediction_events.append({
-        "chart_index": hist_len + agent_idx,
-        "date":        prediction[agent_idx]["date"],
-        "type":        "agent",
-        "label":       "AI Autopilot",
-        "amount":      SIMULATION_AMOUNT,
-        "balance":     bal_after_agent,
-        "etf_after":   etf_projected,
+        "chart_index":    hist_len + agent_idx,
+        "date":           prediction[agent_idx]["date"],
+        "type":           "agent",
+        "label":          "AI Autopilot",
+        "amount":         SIMULATION_AMOUNT,
+        "balance":        bal_after_agent,
+        "etf_after":      etf_projected,
+        "monthly_savings": monthly_savings,
+        "success_fee":    success_fee,
         "text": (
             f"AI Autopilot detekoval skrytý únik peněz a zkrotil výdaje na Gastro & Subskripce. "
             f"Variabilní výdaje sníženy o ~33 %. Přebytek {_czk(SIMULATION_AMOUNT)} přesměrován do ETF portfolia. "
             f"Projekce ETF po převodu: {_czk(etf_projected)}."
+            f"<br>Služba Autopilot je zpoplatněna formou 10% success fee pouze ze zjištěných "
+            f"a optimalizovaných neefektivních výdajů. "
+            f"Tento měsíc ušetřeno: {_czk(monthly_savings)}, poplatek RB: {_czk(success_fee)}."
         ),
     })
 
