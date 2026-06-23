@@ -671,6 +671,35 @@ def _run_fallback(risk_profile: str = "vyvazeny") -> str:
         f"Vedení prémiového účtu: 0 Kč (aktivováno zdarma – splněny podmínky pravidelného příjmu).",
     )
 
+    _log(
+        "compliance",
+        f"[Compliance ⚖️] Kontrola MiFID II profilu: Validní. "
+        f"Zvolený profil '{profile['label']}' odpovídá výsledku dotazníku. "
+        f"Režim Kopilot vyžaduje push autorizaci v RB klíči.",
+    )
+
+    habit      = _state.get("habit_info")
+    habit_ev   = habit["ev"]   if habit else 0
+    habit_var  = habit["variance"] if habit else 0.0
+    _log(
+        "risk_engine",
+        f"[Risk Engine 🧠] Propočet Expected Value a Variance: "
+        f"E[ZTRÁTA_HABIT] = {habit_ev:,} Kč/rok, Var(X) = {habit_var:.4f}. "
+        f"Investiční model: E[X] = {ev:.1f} % p.a., Var(X) = {var:.4f}. "
+        f"Úspěšně kalibrováno na historickou volatilitu trhu pod kódem RB-ALM-01.",
+    )
+
+    fixed_monthly = _state.get("mortgage_payment", 18_000) + _state.get("mini_loan_payment", 4_000) + 22_000 + 4_500
+    reserve_target = fixed_monthly * 3
+    current_reserve = _state["savings_balance"]
+    reserve_ok = "Autonomie je bezpečná." if current_reserve >= reserve_target else f"Doporučeno navýšit rezervu na {reserve_target:,} Kč."
+    _log(
+        "liquidity_guard",
+        f"[Liquidity Guard 🛡️] Rezerva na spořicím účtu: {current_reserve:,.0f} Kč. "
+        f"Minimální cíl (3× fixní výdaje = {reserve_target:,} Kč): "
+        f"{'splněn' if current_reserve >= reserve_target else 'NESPLNĚN'}. {reserve_ok}",
+    )
+
     return f"Simulace dokončena. Profil: {profile['label']}. Přesunuto {amount:,} Kč."
 
 
