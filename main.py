@@ -107,6 +107,11 @@ RISK_PROFILES: dict[str, dict] = {
 }
 
 
+def _fmt_czk(amount: int) -> str:
+    """Format integer as Czech koruna: 15000 → '15 000 Kč'."""
+    return f"{amount:,} Kč".replace(",", " ")
+
+
 def _var_label_investment(var: float) -> str:
     """Human-readable market-volatility label for investment context."""
     if var < 0.005:
@@ -1285,7 +1290,8 @@ async def get_state(lang: str = "cz"):
         "chart":            _build_monthly_chart(lang),
         "chart_story":      _build_chart_story(lang),
         "expense_donut":    _build_expense_donut(lang),
-        "safe_surplus":     int(safe_surplus),
+        "safe_surplus":      int(safe_surplus),
+        "formatted_surplus": _fmt_czk(int(safe_surplus)),
     })
 
 
@@ -1332,7 +1338,8 @@ async def run_agent_endpoint(body: dict = Body(default={})):
         "agent_log":       _state["agent_log"][-20:],
         "risk_profile":    risk_profile,
         "score":           score,
-        "safe_surplus":    int(safe_surplus),
+        "safe_surplus":     int(safe_surplus),
+        "formatted_surplus": _fmt_czk(int(safe_surplus)),
         "detected_habits": _build_detected_habit(_state["habit_info"], lang) if _state.get("habit_info") else _state.get("detected_habits"),
         "chart_story":     _build_chart_story(lang),
         "projection":      _compute_investment_projection(
