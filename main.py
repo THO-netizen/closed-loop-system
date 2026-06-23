@@ -78,30 +78,30 @@ RISK_PROFILES: dict[str, dict] = {
         "label": "Konzervativní",
         "etf_pct": 0.20,
         "savings_pct": 0.80,
-        "etf_label": "ETF Peněžní trh",
-        "savings_label": "Dluhopisy",
-        "annual_return": 0.04,
-        "expected_value": 4.0,
+        "etf_label": "Stabilní ETF s nízkou volatilitou",
+        "savings_label": "Dluhopisy a termínované vklady",
+        "annual_return": 0.045,
+        "expected_value": 4.5,
         "variance": 0.0015,
     },
     "vyvazeny": {
         "label": "Vyvážený",
         "etf_pct": 0.50,
         "savings_pct": 0.50,
-        "etf_label": "Akciové globální ETF",
-        "savings_label": "Dluhopisy",
+        "etf_label": "Vyvážené akciové ETF (MSCI World)",
+        "savings_label": "Dluhopisy a peněžní trh",
         "annual_return": 0.065,
         "expected_value": 6.5,
         "variance": 0.0080,
     },
     "dynamicky": {
         "label": "Dynamický",
-        "etf_pct": 0.80,
-        "savings_pct": 0.20,
-        "etf_label": "Akciové ETF S&P500 / MSCI World + Krypto/Tech ETF",
-        "savings_label": "Likvidní rezerva",
-        "annual_return": 0.095,
-        "expected_value": 9.5,
+        "etf_pct": 0.70,
+        "savings_pct": 0.30,
+        "etf_label": "Akciové ETF S&P 500 / MSCI World",
+        "savings_label": "Ostatní trhy a alternativní aktiva",
+        "annual_return": 0.08,
+        "expected_value": 8.0,
         "variance": 0.0250,
     },
 }
@@ -135,15 +135,16 @@ def _compute_investment_projection(
     σ   = FV × √(profile_variance) × √years  (rough lognormal scaling)
     E[X] = FV  (deterministic at the fixed rate; variance captures market spread)
     """
-    profile  = RISK_PROFILES.get(risk_profile_key, RISK_PROFILES["vyvazeny"])
-    r        = 0.08 / 12
-    n        = years * 12
-    fv       = int(monthly_pmt * ((1 + r) ** n - 1) / r)
-    sigma    = int(fv * (profile["variance"] ** 0.5) * (years ** 0.5))
+    profile      = RISK_PROFILES.get(risk_profile_key, RISK_PROFILES["vyvazeny"])
+    annual_rate  = profile["expected_value"]
+    r            = (annual_rate / 100) / 12
+    n            = years * 12
+    fv           = int(monthly_pmt * ((1 + r) ** n - 1) / r)
+    sigma        = int(fv * (profile["variance"] ** 0.5) * (years ** 0.5))
     return {
         "monthly_pmt":   monthly_pmt,
         "years":         years,
-        "annual_rate":   8.0,
+        "annual_rate":   annual_rate,
         "fv":            fv,
         "ev":            fv,
         "sigma":         sigma,
@@ -162,11 +163,11 @@ def _var_label_spending(var: float) -> str:
 
 def _score_to_profile(q1: int, q2: int, q3: int) -> tuple[str, int]:
     score = q1 + q2 + q3
-    if score <= 4:
+    if q3 == 1:      # withdraw immediately → conservative regardless of experience
         return "konzervativni", score
-    if score <= 7:
-        return "vyvazeny", score
-    return "dynamicky", score
+    if q2 == 2:      # experienced + stay invested → dynamic
+        return "dynamicky", score
+    return "vyvazeny", score  # no experience + stay invested → balanced
 
 
 # ---------------------------------------------------------------------------

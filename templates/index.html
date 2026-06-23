@@ -271,7 +271,7 @@
 <div id="mifid-modal"
      style="display:none"
      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-  <div class="glass rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto space-y-6 glow-yellow relative">
+  <div class="glass rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 glow-yellow relative">
 
     <!-- Close -->
     <button id="btn-close-mifid"
@@ -312,113 +312,109 @@
       </div>
     </div>
 
-    <!-- 3 Questions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Step progress -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span id="step-dot-1" class="w-2.5 h-2.5 rounded-full transition-colors duration-300 bg-yellow-400"></span>
+        <span id="step-dot-2" class="w-2.5 h-2.5 rounded-full transition-colors duration-300 bg-neutral-700"></span>
+        <span id="step-dot-3" class="w-2.5 h-2.5 rounded-full transition-colors duration-300 bg-neutral-700"></span>
+      </div>
+      <span id="step-label" class="text-xs text-neutral-500">Krok 1 ze 3</span>
+    </div>
 
-      <!-- Q1 -->
+    <!-- Step 1: Cíle + Horizont -->
+    <div id="mifid-step-1" class="space-y-5">
+      <div>
+        <p class="text-xs font-semibold text-neutral-300 mb-2.5" data-i18n="goal_prompt">Jaký je váš hlavní životní cíl?</p>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="goal-chip px-3.5 py-2 rounded-lg border border-white/6 bg-black/30 text-xs text-neutral-400 hover:border-yellow-400/30 hover:text-neutral-200 transition-all duration-200" data-goal="housing">🏠 <span data-i18n="goal_housing">Vlastní bydlení</span></button>
+          <button type="button" class="goal-chip px-3.5 py-2 rounded-lg border border-white/6 bg-black/30 text-xs text-neutral-400 hover:border-yellow-400/30 hover:text-neutral-200 transition-all duration-200" data-goal="family">👨‍👩‍👦 <span data-i18n="goal_family">Zajištění rodiny</span></button>
+          <button type="button" class="goal-chip px-3.5 py-2 rounded-lg border border-white/6 bg-black/30 text-xs text-neutral-400 hover:border-yellow-400/30 hover:text-neutral-200 transition-all duration-200" data-goal="retirement">🌅 <span data-i18n="goal_retirement">Klidný důchod</span></button>
+          <button type="button" class="goal-chip px-3.5 py-2 rounded-lg border border-white/6 bg-black/30 text-xs text-neutral-400 hover:border-yellow-400/30 hover:text-neutral-200 transition-all duration-200" data-goal="education">🎓 <span data-i18n="goal_education">Vzdělání dětí</span></button>
+          <button type="button" class="goal-chip px-3.5 py-2 rounded-lg border border-white/6 bg-black/30 text-xs text-neutral-400 hover:border-yellow-400/30 hover:text-neutral-200 transition-all duration-200" data-goal="other">✨ <span data-i18n="goal_other">Jiný cíl</span></button>
+        </div>
+      </div>
       <div class="q-card rounded-xl bg-black/40 border border-white/6 p-4 space-y-3">
         <div class="flex items-start gap-2.5">
-          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
-                       flex items-center justify-center shrink-0 mt-0.5">1</span>
-          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q1_text">
-            Jaký je váš investiční horizont?
-          </p>
+          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q1_text">Jaký je váš investiční horizont?</p>
         </div>
         <div class="space-y-1.5">
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q1" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q1_a">Méně než 3 roky</span>
-            </span>
+            <span class="text-xs text-neutral-400 leading-snug"><span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q1_a">3 roky</span></span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q1" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q1_b">3–7 let</span>
-            </span>
+            <span class="text-xs text-neutral-400 leading-snug"><span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q1_b">5 let</span></span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q1" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">C</span> — <span data-i18n="q1_c">Více než 7 let</span>
-            </span>
+            <span class="text-xs text-neutral-400 leading-snug"><span class="font-semibold text-neutral-300">C</span> — <span data-i18n="q1_c">10 let a více</span></span>
           </label>
         </div>
       </div>
+    </div>
 
-      <!-- Q2 -->
+    <!-- Step 2: Zkušenosti -->
+    <div id="mifid-step-2" class="hidden space-y-5">
       <div class="q-card rounded-xl bg-black/40 border border-white/6 p-4 space-y-3">
         <div class="flex items-start gap-2.5">
-          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
-                       flex items-center justify-center shrink-0 mt-0.5">2</span>
-          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q2_text">
-            Jaký pokles portfolia byste unesl/a bez paniky?
-          </p>
+          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q2_text">Jaké jsou vaše zkušenosti s investováním?</p>
         </div>
         <div class="space-y-1.5">
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q2" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q2_a">Max 5 %</span>
-            </span>
+            <span class="text-xs text-neutral-400 leading-snug"><span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q2_a">Žádné – chci začít opatrně</span></span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q2" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q2_b">Do 15 %</span>
-            </span>
-          </label>
-          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
-            <input type="radio" name="q2" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">C</span> — <span data-i18n="q2_c">Více než 20 % pro maximalizaci zisku</span>
-            </span>
+            <span class="text-xs text-neutral-400 leading-snug"><span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q2_b">Mám zkušenosti s podílovými fondy nebo akciemi</span></span>
           </label>
         </div>
       </div>
+    </div>
 
-      <!-- Q3 -->
+    <!-- Step 3: Riziko -->
+    <div id="mifid-step-3" class="hidden space-y-5">
       <div class="q-card rounded-xl bg-black/40 border border-white/6 p-4 space-y-3">
         <div class="flex items-start gap-2.5">
-          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black
-                       flex items-center justify-center shrink-0 mt-0.5">3</span>
-          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q3_text">
-            Jaké jsou vaše zkušenosti s investováním?
-          </p>
+          <span class="w-5 h-5 rounded bg-yellow-400 text-neutral-950 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+          <p class="text-xs font-semibold text-neutral-200 leading-snug" data-i18n="q3_text">Co uděláte, pokud vaše portfolio poklesne o 20 %?</p>
         </div>
         <div class="space-y-1.5">
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q3" value="1" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q3_a">Žádné</span>
-            </span>
+            <span class="text-xs text-neutral-400 leading-snug"><span class="font-semibold text-neutral-300">A</span> — <span data-i18n="q3_a">Vše okamžitě vyberu – nesnáším ztrátu</span></span>
           </label>
           <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
             <input type="radio" name="q3" value="2" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q3_b">Mám spořicí účty a podílové fondy</span>
-            </span>
-          </label>
-          <label class="q-option flex items-start gap-2.5 p-2 rounded-lg cursor-pointer">
-            <input type="radio" name="q3" value="3" class="accent-yellow-400 mt-0.5 shrink-0">
-            <span class="text-xs text-neutral-400 leading-snug">
-              <span class="font-semibold text-neutral-300">C</span> — <span data-i18n="q3_c">Obchoduji akcie / ETF</span>
-            </span>
+            <span class="text-xs text-neutral-400 leading-snug"><span class="font-semibold text-neutral-300">B</span> — <span data-i18n="q3_b">Nechám peníze pracovat – rozumím dlouhodobému horizontu</span></span>
           </label>
         </div>
       </div>
-
     </div>
 
     <!-- Validation error -->
-    <p id="q-error" class="hidden text-xs text-red-400" data-i18n="q_error">
-      ⚠ Prosím, odpovězte na všechny 3 otázky před spuštěním agenta.
+    <p id="q-error" class="hidden text-xs text-red-400">
+      &#9888; Prosím, odpovězte na otázku před pokračováním.
     </p>
 
-    <!-- Submit row -->
-    <div class="flex flex-col sm:flex-row items-center gap-3 pt-1">
-      <button id="btn-run"
-              class="w-full sm:flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300
+    <!-- Navigation -->
+    <div class="flex items-center gap-3 pt-1">
+      <button id="btn-back" style="display:none"
+              class="px-4 py-2.5 rounded-xl border border-white/10 bg-neutral-900 hover:bg-neutral-800
+                     text-xs text-neutral-400 hover:text-neutral-200 transition-colors font-semibold shrink-0">
+        <span data-i18n="btn_back">← Zpět</span>
+      </button>
+      <button id="btn-next"
+              class="flex-1 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700
+                     text-xs font-bold text-neutral-200 transition-colors">
+        <span data-i18n="btn_next">Další →</span>
+      </button>
+      <button id="btn-run" style="display:none"
+              class="flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300
                      text-sm font-bold text-neutral-950 transition-colors
                      flex items-center justify-center gap-2">
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24"
@@ -558,14 +554,20 @@ const LANG_STRINGS = {
     system_connected:'Spojení s Raiffeisenbank Open Banking API (PSD2) úspěšně navázáno. Token validní. Inicializuji zabezpečený audit transakční historie...',
     system_label:'Systém', spinner_text:'Agent pracuje…',
     modal_title:'MiFID II Investiční dotazník',
-    modal_subtitle:'Suitability assessment · Směrnice MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body',
+    modal_subtitle:'Suitability assessment · Směrnice MiFID II / IDD · 3 kroky',
+    goal_prompt:'Jaký je váš hlavní životní cíl?',
+    goal_housing:'Vlastní bydlení', goal_family:'Zajištění rodiny',
+    goal_retirement:'Klidný důchod', goal_education:'Vzdělání dětí', goal_other:'Jiný cíl',
+    btn_next:'Další →', btn_back:'← Zpět', step_label:'Krok {n} ze {total}',
     q1_text:'Jaký je váš investiční horizont?',
-    q1_a:'Méně než 3 roky', q1_b:'3–7 let', q1_c:'Více než 7 let',
-    q2_text:'Jaký pokles portfolia byste unesl/a bez paniky?',
-    q2_a:'Max 5 %', q2_b:'Do 15 %', q2_c:'Více než 20 % pro maximalizaci zisku',
-    q3_text:'Jaké jsou vaše zkušenosti s investováním?',
-    q3_a:'Žádné', q3_b:'Mám spořicí účty a podílové fondy', q3_c:'Obchoduji akcie / ETF',
-    q_error:'⚠ Prosím, odpovězte na všechny 3 otázky před spuštěním agenta.',
+    q1_a:'3 roky', q1_b:'5 let', q1_c:'10 let a více',
+    q2_text:'Jaké jsou vaše zkušenosti s investováním?',
+    q2_a:'Žádné – chci začít opatrně', q2_b:'Mám zkušenosti s podílovými fondy nebo akciemi',
+    q3_text:'Co uděláte, pokud vaše portfolio poklesne o 20 %?',
+    q3_a:'Vše okamžitě vyberu – nesnáším ztrátu', q3_b:'Nechám peníze pracovat – rozumím dlouhodobému horizontu',
+    q_error_step1:'Prosím, vyberte životní cíl a investiční horizont.',
+    q_error_step2:'Prosím, vyberte vaši zkušenost s investováním.',
+    q_error_step3:'Prosím, zvolte vaši reakci na pokles trhů.',
     tt_income_total:'Příjmy celkem', tt_salary:'Pravidelná mzda (15.)',
     tt_expense_total:'Výdaje celkem', tt_loans:'Splátky hypotéky a úvěrů',
     tt_housing:'Bydlení a služby', tt_daily:'Běžné nákupy a spotřeba',
@@ -584,9 +586,11 @@ const LANG_STRINGS = {
     kopilot_subtitle:'Kopilot · AI asistent · Potvrzení investice',
     kopilot_question:'Mám pro vás doporučení. Identifikoval jsem bezpečný měsíční přebytek {amount}. Mohu tuto částku investovat do vašeho cíle ({goal})?',
     kopilot_alloc_title:'Kam peníze jdou',
-    kopilot_alloc:'70 % Akciové ETF (S&P 500 / MSCI World) · 30 % Dluhopisy a peněžní trh pro stabilitu portfolia.',
+    kopilot_alloc_konzervativni:'80 % Dluhopisy a termínované vklady · 20 % Stabilní ETF s nízkou volatilitou.',
+    kopilot_alloc_vyvazeny:'50 % Dluhopisy a peněžní trh · 50 % Vyvážené akciové ETF (MSCI World).',
+    kopilot_alloc_dynamicky:'70 % Akciové ETF (S&P 500 / MSCI World) · 30 % Rozvíjející se trhy a alternativní aktiva.',
     kopilot_return_title:'Předpokládaná návratnost',
-    kopilot_return:'Roční výnos: 8 % p.a. Očekávaná hodnota E[X] za {years} let: {fv}.',
+    kopilot_return:'Roční výnos: {rate} % p.a. Očekávaná hodnota E[X] za {years} let: {fv}.',
     kopilot_risk_title:'Rizikovost investice',
     kopilot_risk:'{level}. Horizont {years} let historicky minimalizuje krátkodobé výkyvy.',
     kopilot_risk_konzervativni:'Nízká volatilita',
@@ -641,14 +645,20 @@ const LANG_STRINGS = {
     system_connected:'З\'єднання з Raiffeisenbank Open Banking API (PSD2) успішно встановлено. Токен дійсний. Ініціалізую безпечний аудит транзакційної історії...',
     system_label:'Система', spinner_text:'Агент працює…',
     modal_title:'Інвестиційна анкета MiFID II',
-    modal_subtitle:'Оцінка придатності · Директива MiFID II / IDD · A = 1 бал, B = 2 бали, C = 3 бали',
+    modal_subtitle:'Оцінка придатності · Директива MiFID II / IDD · 3 кроки',
+    goal_prompt:'Яка ваша головна фінансова мета?',
+    goal_housing:'Власне житло', goal_family:'Забезпечення сім\'ї',
+    goal_retirement:'Спокійна пенсія', goal_education:'Освіта дітей', goal_other:'Інша мета',
+    btn_next:'Далі →', btn_back:'← Назад', step_label:'Крок {n} з {total}',
     q1_text:'Який ваш інвестиційний горизонт?',
-    q1_a:'Менше 3 років', q1_b:'3–7 років', q1_c:'Більше 7 років',
-    q2_text:'Який спад портфеля ви витримаєте без паніки?',
-    q2_a:'Макс. 5 %', q2_b:'До 15 %', q2_c:'Більше 20 % для максимізації прибутку',
-    q3_text:'Який у вас досвід інвестування?',
-    q3_a:'Жодного', q3_b:'Маю ощадні рахунки та пайові фонди', q3_c:'Торгую акціями / ETF',
-    q_error:'⚠ Будь ласка, дайте відповідь на всі 3 запитання перед запуском агента.',
+    q1_a:'3 роки', q1_b:'5 років', q1_c:'10 років і більше',
+    q2_text:'Який ваш досвід інвестування?',
+    q2_a:'Жодного – хочу почати обережно', q2_b:'Маю досвід з пайовими фондами або акціями',
+    q3_text:'Що ви зробите, якщо ваше портфоліо впаде на 20 %?',
+    q3_a:'Виведу все негайно – не терплю збитків', q3_b:'Залишу гроші працювати – розумію довгостроковий горизонт',
+    q_error_step1:'Будь ласка, виберіть мету та горизонт інвестування.',
+    q_error_step2:'Будь ласка, виберіть ваш досвід інвестування.',
+    q_error_step3:'Будь ласка, виберіть вашу реакцію на падіння ринку.',
     tt_income_total:'Доходи всього', tt_salary:'Регулярна зарплата (15-е)',
     tt_expense_total:'Витрати всього', tt_loans:'Платежі за іпотекою та кредитами',
     tt_housing:'Житло та послуги', tt_daily:'Щоденні покупки та споживання',
@@ -667,9 +677,11 @@ const LANG_STRINGS = {
     kopilot_subtitle:'Копілот · AI помічник · Підтвердження інвестиції',
     kopilot_question:'Маю для вас рекомендацію. Я визначив безпечний місячний надлишок {amount}. Чи можу інвестувати цю суму у вашу мету ({goal})?',
     kopilot_alloc_title:'Куди підуть гроші',
-    kopilot_alloc:'70 % Акціонерний ETF (S&P 500 / MSCI World) · 30 % Облігації та грошовий ринок для стабільності.',
+    kopilot_alloc_konzervativni:'80 % Облігації та строкові вклади · 20 % Стабільний ETF з низькою волатильністю.',
+    kopilot_alloc_vyvazeny:'50 % Облігації та грошовий ринок · 50 % Збалансований акціонерний ETF (MSCI World).',
+    kopilot_alloc_dynamicky:'70 % Акціонерний ETF (S&P 500 / MSCI World) · 30 % Ринки, що розвиваються, та альтернативні активи.',
     kopilot_return_title:'Очікувана прибутковість',
-    kopilot_return:'Річна дохідність: 8 % річних. Очікувана вартість E[X] через {years} р.: {fv}.',
+    kopilot_return:'Річна дохідність: {rate} % річних. Очікувана вартість E[X] через {years} р.: {fv}.',
     kopilot_risk_title:'Ризиковість інвестиції',
     kopilot_risk:'{level}. Горизонт {years} р. історично мінімізує короткострокові коливання.',
     kopilot_risk_konzervativni:'Низька волатильність',
@@ -724,14 +736,20 @@ const LANG_STRINGS = {
     system_connected:'Spojenie s Raiffeisenbank Open Banking API (PSD2) úspešne nadviazané. Token platný. Inicializujem bezpečný audit transakčnej histórie...',
     system_label:'Systém', spinner_text:'Agent pracuje…',
     modal_title:'Investičný dotazník MiFID II',
-    modal_subtitle:'Suitability assessment · Smernica MiFID II / IDD · A = 1 bod, B = 2 body, C = 3 body',
+    modal_subtitle:'Suitability assessment · Smernica MiFID II / IDD · 3 kroky',
+    goal_prompt:'Aký je váš hlavný životný cieľ?',
+    goal_housing:'Vlastné bývanie', goal_family:'Zabezpečenie rodiny',
+    goal_retirement:'Pokojný dôchodok', goal_education:'Vzdelanie detí', goal_other:'Iný cieľ',
+    btn_next:'Ďalej →', btn_back:'← Späť', step_label:'Krok {n} z {total}',
     q1_text:'Aký je váš investičný horizont?',
-    q1_a:'Menej ako 3 roky', q1_b:'3–7 rokov', q1_c:'Viac ako 7 rokov',
-    q2_text:'Aký pokles portfólia zvládnete bez paniky?',
-    q2_a:'Max 5 %', q2_b:'Do 15 %', q2_c:'Viac ako 20 % pre maximalizáciu zisku',
-    q3_text:'Aké sú vaše skúsenosti s investovaním?',
-    q3_a:'Žiadne', q3_b:'Mám sporiace účty a podielové fondy', q3_c:'Obchodujem akcie / ETF',
-    q_error:'⚠ Prosím, odpovedzte na všetky 3 otázky pred spustením agenta.',
+    q1_a:'3 roky', q1_b:'5 rokov', q1_c:'10 rokov a viac',
+    q2_text:'Aké sú vaše skúsenosti s investovaním?',
+    q2_a:'Žiadne – chcem začať opatrne', q2_b:'Mám skúsenosti s podielovými fondmi alebo akciami',
+    q3_text:'Čo urobíte, ak vaše portfólio klesne o 20 %?',
+    q3_a:'Všetko okamžite vyberiem – neznášam straty', q3_b:'Nechám peniaze pracovať – rozumiem dlhodobému horizontu',
+    q_error_step1:'Prosím, vyberte životný cieľ a investičný horizont.',
+    q_error_step2:'Prosím, vyberte vaše skúsenosti s investovaním.',
+    q_error_step3:'Prosím, zvoľte vašu reakciu na pokles trhov.',
     tt_income_total:'Príjmy celkom', tt_salary:'Pravidelná mzda (15.)',
     tt_expense_total:'Výdavky celkom', tt_loans:'Splátky hypotéky a úverov',
     tt_housing:'Bývanie a služby', tt_daily:'Bežné nákupy a spotreba',
@@ -750,9 +768,11 @@ const LANG_STRINGS = {
     kopilot_subtitle:'Kopilot · AI asistent · Potvrdenie investície',
     kopilot_question:'Mám pre vás odporúčanie. Identifikoval som bezpečný mesačný prebytok {amount}. Môžem túto sumu investovať do vášho cieľa ({goal})?',
     kopilot_alloc_title:'Kam idú peniaze',
-    kopilot_alloc:'70 % Akciové ETF (S&P 500 / MSCI World) · 30 % Dlhopisy a peňažný trh pre stabilitu portfólia.',
+    kopilot_alloc_konzervativni:'80 % Dlhopisy a termínované vklady · 20 % Stabilné ETF s nízkou volatilitou.',
+    kopilot_alloc_vyvazeny:'50 % Dlhopisy a peňažný trh · 50 % Vyvážené akciové ETF (MSCI World).',
+    kopilot_alloc_dynamicky:'70 % Akciové ETF (S&P 500 / MSCI World) · 30 % Rozvíjajúce sa trhy a alternatívne aktíva.',
     kopilot_return_title:'Predpokladaná návratnosť',
-    kopilot_return:'Ročný výnos: 8 % p.a. Očakávaná hodnota E[X] za {years} rokov: {fv}.',
+    kopilot_return:'Ročný výnos: {rate} % p.a. Očakávaná hodnota E[X] za {years} rokov: {fv}.',
     kopilot_risk_title:'Rizikovosť investície',
     kopilot_risk:'{level}. Horizont {years} rokov historicky minimalizuje krátkodobé výkyvy.',
     kopilot_risk_konzervativni:'Nízka volatilita',
@@ -807,14 +827,20 @@ const LANG_STRINGS = {
     system_connected:'Kết nối với Raiffeisenbank Open Banking API (PSD2) thành công. Token hợp lệ. Khởi tạo kiểm tra lịch sử giao dịch an toàn...',
     system_label:'Hệ thống', spinner_text:'Agent đang làm việc…',
     modal_title:'Bảng câu hỏi đầu tư MiFID II',
-    modal_subtitle:'Đánh giá phù hợp · Chỉ thị MiFID II / IDD · A = 1 điểm, B = 2 điểm, C = 3 điểm',
-    q1_text:'Kỳ vọng đầu tư của bạn là bao lâu?',
-    q1_a:'Dưới 3 năm', q1_b:'3–7 năm', q1_c:'Trên 7 năm',
-    q2_text:'Bạn có thể chịu mức giảm danh mục nào mà không hoảng loạn?',
-    q2_a:'Tối đa 5 %', q2_b:'Đến 15 %', q2_c:'Trên 20 % để tối đa hóa lợi nhuận',
-    q3_text:'Kinh nghiệm đầu tư của bạn như thế nào?',
-    q3_a:'Không có', q3_b:'Có tài khoản tiết kiệm và quỹ đầu tư', q3_c:'Giao dịch cổ phiếu / ETF',
-    q_error:'⚠ Vui lòng trả lời tất cả 3 câu hỏi trước khi chạy agent.',
+    modal_subtitle:'Đánh giá phù hợp · Chỉ thị MiFID II / IDD · 3 bước',
+    goal_prompt:'Mục tiêu tài chính chính của bạn là gì?',
+    goal_housing:'Nhà ở riêng', goal_family:'Đảm bảo gia đình',
+    goal_retirement:'Nghỉ hưu an nhàn', goal_education:'Giáo dục con cái', goal_other:'Mục tiêu khác',
+    btn_next:'Tiếp →', btn_back:'← Quay lại', step_label:'Bước {n} trong {total}',
+    q1_text:'Kỳ hạn đầu tư của bạn là bao lâu?',
+    q1_a:'3 năm', q1_b:'5 năm', q1_c:'10 năm trở lên',
+    q2_text:'Kinh nghiệm đầu tư của bạn như thế nào?',
+    q2_a:'Không có – muốn bắt đầu thận trọng', q2_b:'Có kinh nghiệm với quỹ đầu tư hoặc cổ phiếu',
+    q3_text:'Bạn sẽ làm gì nếu danh mục giảm 20 %?',
+    q3_a:'Rút tất cả ngay – không chịu được thua lỗ', q3_b:'Để tiền tiếp tục làm việc – hiểu kỳ hạn dài hạn',
+    q_error_step1:'Vui lòng chọn mục tiêu và kỳ hạn đầu tư.',
+    q_error_step2:'Vui lòng chọn kinh nghiệm đầu tư của bạn.',
+    q_error_step3:'Vui lòng chọn phản ứng của bạn khi thị trường giảm.',
     tt_income_total:'Tổng thu nhập', tt_salary:'Lương định kỳ (ngày 15)',
     tt_expense_total:'Tổng chi tiêu', tt_loans:'Trả góp thế chấp và vay',
     tt_housing:'Nhà ở và dịch vụ', tt_daily:'Mua sắm hàng ngày',
@@ -833,9 +859,11 @@ const LANG_STRINGS = {
     kopilot_subtitle:'Copilot · Trợ lý AI · Xác nhận đầu tư',
     kopilot_question:'Tôi có một khuyến nghị cho bạn. Tôi xác định được khoản thặng dư hàng tháng an toàn là {amount}. Tôi có thể đầu tư khoản này vào mục tiêu của bạn ({goal}) không?',
     kopilot_alloc_title:'Tiền đi đâu',
-    kopilot_alloc:'70 % ETF cổ phiếu (S&P 500 / MSCI World) · 30 % Trái phiếu và thị trường tiền tệ để ổn định.',
+    kopilot_alloc_konzervativni:'80 % Trái phiếu và tiền gửi có kỳ hạn · 20 % ETF ổn định với biến động thấp.',
+    kopilot_alloc_vyvazeny:'50 % Trái phiếu và thị trường tiền tệ · 50 % ETF cổ phiếu cân bằng (MSCI World).',
+    kopilot_alloc_dynamicky:'70 % ETF cổ phiếu (S&P 500 / MSCI World) · 30 % Thị trường mới nổi và tài sản thay thế.',
     kopilot_return_title:'Lợi nhuận dự kiến',
-    kopilot_return:'Lợi suất hàng năm: 8 % năm. Giá trị kỳ vọng E[X] sau {years} năm: {fv}.',
+    kopilot_return:'Lợi suất hàng năm: {rate} % năm. Giá trị kỳ vọng E[X] sau {years} năm: {fv}.',
     kopilot_risk_title:'Mức độ rủi ro',
     kopilot_risk:'{level}. Kỳ hạn {years} năm đã chứng minh giảm thiểu biến động ngắn hạn.',
     kopilot_risk_konzervativni:'Biến động thấp',
@@ -890,14 +918,20 @@ const LANG_STRINGS = {
     system_connected:'Соединение с Raiffeisenbank Open Banking API (PSD2) успешно установлено. Токен действителен. Инициализирую безопасный аудит истории транзакций...',
     system_label:'Система', spinner_text:'Агент работает…',
     modal_title:'Инвестиционная анкета MiFID II',
-    modal_subtitle:'Оценка пригодности · Директива MiFID II / IDD · A = 1 балл, B = 2 балла, C = 3 балла',
+    modal_subtitle:'Оценка пригодности · Директива MiFID II / IDD · 3 шага',
+    goal_prompt:'Какова ваша главная финансовая цель?',
+    goal_housing:'Собственное жильё', goal_family:'Обеспечение семьи',
+    goal_retirement:'Спокойная пенсия', goal_education:'Образование детей', goal_other:'Другая цель',
+    btn_next:'Далее →', btn_back:'← Назад', step_label:'Шаг {n} из {total}',
     q1_text:'Каков ваш инвестиционный горизонт?',
-    q1_a:'Менее 3 лет', q1_b:'3–7 лет', q1_c:'Более 7 лет',
-    q2_text:'Какое падение портфеля вы выдержите без паники?',
-    q2_a:'Макс. 5 %', q2_b:'До 15 %', q2_c:'Более 20 % для максимизации прибыли',
-    q3_text:'Каков ваш опыт инвестирования?',
-    q3_a:'Никакого', q3_b:'Имею сберегательные счета и паевые фонды', q3_c:'Торгую акциями / ETF',
-    q_error:'⚠ Пожалуйста, ответьте на все 3 вопроса перед запуском агента.',
+    q1_a:'3 года', q1_b:'5 лет', q1_c:'10 лет и более',
+    q2_text:'Каков ваш опыт инвестирования?',
+    q2_a:'Никакого – хочу начать осторожно', q2_b:'Есть опыт с паевыми фондами или акциями',
+    q3_text:'Что вы сделаете, если портфель упадёт на 20 %?',
+    q3_a:'Выведу всё немедленно – не терплю убытков', q3_b:'Оставлю деньги работать – понимаю долгосрочный горизонт',
+    q_error_step1:'Пожалуйста, выберите жизненную цель и горизонт инвестирования.',
+    q_error_step2:'Пожалуйста, выберите ваш опыт инвестирования.',
+    q_error_step3:'Пожалуйста, выберите вашу реакцию на падение рынка.',
     tt_income_total:'Доходы всего', tt_salary:'Регулярная зарплата (15-е)',
     tt_expense_total:'Расходы всего', tt_loans:'Платежи по ипотеке и кредитам',
     tt_housing:'Жильё и услуги', tt_daily:'Ежедневные покупки и потребление',
@@ -916,9 +950,11 @@ const LANG_STRINGS = {
     kopilot_subtitle:'Копилот · AI помощник · Подтверждение инвестиции',
     kopilot_question:'У меня есть рекомендация для вас. Я определил безопасный ежемесячный профицит {amount}. Могу ли я инвестировать эту сумму в вашу цель ({goal})?',
     kopilot_alloc_title:'Куда пойдут деньги',
-    kopilot_alloc:'70 % Акционерный ETF (S&P 500 / MSCI World) · 30 % Облигации и денежный рынок для стабильности.',
+    kopilot_alloc_konzervativni:'80 % Облигации и срочные вклады · 20 % Стабильный ETF с низкой волатильностью.',
+    kopilot_alloc_vyvazeny:'50 % Облигации и денежный рынок · 50 % Сбалансированный акционерный ETF (MSCI World).',
+    kopilot_alloc_dynamicky:'70 % Акционерный ETF (S&P 500 / MSCI World) · 30 % Развивающиеся рынки и альтернативные активы.',
     kopilot_return_title:'Ожидаемая доходность',
-    kopilot_return:'Годовая доходность: 8 % годовых. Ожидаемая стоимость E[X] через {years} лет: {fv}.',
+    kopilot_return:'Годовая доходность: {rate} % годовых. Ожидаемая стоимость E[X] через {years} лет: {fv}.',
     kopilot_risk_title:'Рискованность инвестиции',
     kopilot_risk:'{level}. Горизонт {years} лет исторически минимизирует краткосрочные колебания.',
     kopilot_risk_konzervativni:'Низкая волатильность',
@@ -1394,6 +1430,12 @@ const PROFILE_VARIANCE = {
   dynamicky:     0.0250,
 };
 
+const PROFILE_RATES = {
+  konzervativni: 4.5,
+  vyvazeny:      6.5,
+  dynamicky:     8.0,
+};
+
 // q1 answer → concrete year horizon + motivational label
 const HORIZON_MAP = {
   1: { years: 3,  label: 'Krátkodobý cíl za 3 roky' },
@@ -1401,8 +1443,10 @@ const HORIZON_MAP = {
   3: { years: 10, label: 'Dlouhodobý cíl za 10 let'  },
 };
 
-function scoreToKey(s) {
-  return s <= 4 ? 'konzervativni' : s <= 7 ? 'vyvazeny' : 'dynamicky';
+function scoreToKey(q2, q3) {
+  if (q3 === 1) return 'konzervativni';
+  if (q2 === 2) return 'dynamicky';
+  return 'vyvazeny';
 }
 
 // FV = PMT × ((1+r)^n − 1) / r   (ordinary annuity, r = annualRate/12, n = years×12)
@@ -1453,13 +1497,13 @@ function updateProjection(overrideData) {
 
   if (!q1) { box.style.display = 'none'; return; }
 
-  const score      = q1 + (v2 || 2) + (v3 || 2);
-  const profileKey = scoreToKey(score);
-  const horizon    = HORIZON_MAP[q1] || HORIZON_MAP[2];
-  const fv         = computeFV(15000, horizon.years, 0.08);
-  const variance   = PROFILE_VARIANCE[profileKey] ?? 0.008;
-  const sigma      = Math.round(fv * Math.sqrt(variance) * Math.sqrt(horizon.years));
-  const langHorizon = (_ui('horizon') || {})[q1] || horizon.label;
+  const profileKey   = scoreToKey(v2 || 1, v3 || 2);
+  const rate         = PROFILE_RATES[profileKey];
+  const horizon      = HORIZON_MAP[q1] || HORIZON_MAP[2];
+  const fv           = computeFV(15000, horizon.years, rate / 100);
+  const variance     = PROFILE_VARIANCE[profileKey] ?? 0.008;
+  const sigma        = Math.round(fv * Math.sqrt(variance) * Math.sqrt(horizon.years));
+  const langHorizon  = (_ui('horizon') || {})[q1] || horizon.label;
 
   renderProjection({
     fv,
@@ -1467,7 +1511,7 @@ function updateProjection(overrideData) {
     sigma,
     years:       horizon.years,
     monthly_pmt: 15000,
-    annual_rate: 8.0,
+    annual_rate: rate,
     goal_label:  langHorizon,
     profile_label: _ui('profile_' + profileKey) || PROFILE_UI[profileKey]?.label || profileKey,
   });
@@ -1475,20 +1519,18 @@ function updateProjection(overrideData) {
 }
 
 function updateScoreBadge() {
-  const v1 = parseInt(document.querySelector('input[name="q1"]:checked')?.value ?? 0);
   const v2 = parseInt(document.querySelector('input[name="q2"]:checked')?.value ?? 0);
   const v3 = parseInt(document.querySelector('input[name="q3"]:checked')?.value ?? 0);
   const badge = document.getElementById('score-badge');
 
-  if (!v1 || !v2 || !v3) { badge.style.display = 'none'; return; }
+  if (!v2 || !v3) { badge.style.display = 'none'; return; }
 
-  const score = v1 + v2 + v3;
-  const p = PROFILE_UI[scoreToKey(score)];
-  const pLabel = _ui('profile_' + scoreToKey(score)) || p.label;
+  const profileKey = scoreToKey(v2, v3);
+  const p = PROFILE_UI[profileKey];
+  const pLabel = _ui('profile_' + profileKey) || p.label;
   badge.innerHTML =
-    `${_ui('score_label')}: <span class="font-bold text-white mx-1">${score}/9</span>→ <span class="${p.cls} font-bold ml-1">${pLabel}</span>`;
+    `→ <span class="${p.cls} font-bold">${pLabel}</span>`;
   badge.style.display = 'flex';
-  document.getElementById('q-error').classList.add('hidden');
 }
 
 document.querySelectorAll('input[name="q1"], input[name="q2"], input[name="q3"]')
@@ -1498,6 +1540,7 @@ document.querySelectorAll('input[name="q1"], input[name="q2"], input[name="q3"]'
 const modal = document.getElementById('mifid-modal');
 
 document.getElementById('btn-open-mifid').addEventListener('click', () => {
+  goToStep(1);
   modal.style.display = 'flex';
 });
 
@@ -1528,27 +1571,87 @@ function _systemLogHtml(ts) {
 // ── Kopilot modal helpers ────────────────────────────────────────────────────
 let _pendingQ = null;
 
+// ── MiFID 3-step wizard ──────────────────────────────────────────────────────
+let currentStep = 1;
+let selectedGoalKey = '';
+
+function goToStep(n) {
+  [1, 2, 3].forEach(i => {
+    document.getElementById('mifid-step-' + i).classList.toggle('hidden', i !== n);
+    const dot = document.getElementById('step-dot-' + i);
+    dot.className = 'w-2.5 h-2.5 rounded-full transition-colors duration-300 ' +
+      (i < n ? 'bg-green-400' : i === n ? 'bg-yellow-400' : 'bg-neutral-700');
+  });
+  document.getElementById('step-label').textContent =
+    _uifmt('step_label', { n: n, total: 3 });
+  document.getElementById('btn-back').style.display = n > 1 ? '' : 'none';
+  document.getElementById('btn-next').style.display = n < 3 ? '' : 'none';
+  document.getElementById('btn-run').style.display  = n === 3 ? '' : 'none';
+  document.getElementById('q-error').classList.add('hidden');
+  currentStep = n;
+  updateScoreBadge();
+  updateProjection();
+}
+
+document.querySelectorAll('.goal-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    selectedGoalKey = chip.dataset.goal;
+    document.querySelectorAll('.goal-chip').forEach(c => {
+      const active = c.dataset.goal === selectedGoalKey;
+      c.style.borderColor      = active ? 'rgba(251,191,36,0.5)' : '';
+      c.style.backgroundColor  = active ? 'rgba(251,191,36,0.08)' : '';
+      c.style.color            = active ? '#fde68a' : '';
+      c.style.fontWeight       = active ? '600' : '';
+    });
+  });
+});
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  const qerr = document.getElementById('q-error');
+  if (currentStep === 1) {
+    const q1ok = !!document.querySelector('input[name="q1"]:checked');
+    if (!selectedGoalKey || !q1ok) {
+      qerr.textContent = '⚠ ' + _ui('q_error_step1');
+      qerr.classList.remove('hidden');
+      return;
+    }
+  } else if (currentStep === 2) {
+    if (!document.querySelector('input[name="q2"]:checked')) {
+      qerr.textContent = '⚠ ' + _ui('q_error_step2');
+      qerr.classList.remove('hidden');
+      return;
+    }
+  }
+  goToStep(currentStep + 1);
+});
+
+document.getElementById('btn-back').addEventListener('click', () => {
+  goToStep(currentStep - 1);
+});
+
 function showKopilotModal(q1, q2, q3) {
   _pendingQ = { q1, q2, q3 };
 
-  const score       = q1 + q2 + q3;
-  const profileKey  = scoreToKey(score);
+  const profileKey  = scoreToKey(q2, q3);
   const horizon     = HORIZON_MAP[q1] || HORIZON_MAP[2];
   const langHorizon = ((_ui('horizon') || {})[q1]) || horizon.label;
-  const fv          = computeFV(15000, horizon.years, 0.08);
+  const rate        = PROFILE_RATES[profileKey];
+  const fv          = computeFV(15000, horizon.years, rate / 100);
   const fmtK        = (v) => new Intl.NumberFormat('cs-CZ').format(Math.round(v)) + ' Kč';
   const riskLevel   = _ui('kopilot_risk_' + profileKey);
+  const goalLabel   = selectedGoalKey ? _ui('goal_' + selectedGoalKey) : langHorizon;
 
   document.getElementById('km-title').textContent    = _ui('kopilot_title');
   document.getElementById('km-subtitle').textContent = _ui('kopilot_subtitle');
   document.getElementById('km-question').innerHTML   = _uifmt('kopilot_question', {
     amount: `<strong class="text-yellow-400">${fmtK(15000)}</strong>`,
-    goal:   `<strong class="text-yellow-300">${langHorizon}</strong>`,
+    goal:   `<strong class="text-yellow-300">${goalLabel}</strong>`,
   });
   document.getElementById('km-alloc-title').textContent  = _ui('kopilot_alloc_title');
-  document.getElementById('km-alloc').textContent         = _ui('kopilot_alloc');
-  document.getElementById('km-return-title').textContent  = _ui('kopilot_return_title');
-  document.getElementById('km-return').textContent        = _uifmt('kopilot_return', {
+  document.getElementById('km-alloc').textContent        = _ui('kopilot_alloc_' + profileKey) || _ui('kopilot_alloc_dynamicky');
+  document.getElementById('km-return-title').textContent = _ui('kopilot_return_title');
+  document.getElementById('km-return').textContent       = _uifmt('kopilot_return', {
+    rate:  rate,
     years: horizon.years,
     fv:    fmtK(fv),
   });
@@ -1621,26 +1724,25 @@ async function executeAgent(q1, q2, q3) {
 
 // ── MiFID run button ─────────────────────────────────────────────────────────
 document.getElementById('btn-run').addEventListener('click', async () => {
-  const q1el = document.querySelector('input[name="q1"]:checked');
-  const q2el = document.querySelector('input[name="q2"]:checked');
   const q3el = document.querySelector('input[name="q3"]:checked');
+  const qerr = document.getElementById('q-error');
 
-  if (!q1el || !q2el || !q3el) {
-    document.getElementById('q-error').classList.remove('hidden');
+  if (!q3el) {
+    qerr.textContent = '⚠ ' + _ui('q_error_step3');
+    qerr.classList.remove('hidden');
     return;
   }
-  document.getElementById('q-error').classList.add('hidden');
+  qerr.classList.add('hidden');
 
-  const q1 = parseInt(q1el.value), q2 = parseInt(q2el.value), q3 = parseInt(q3el.value);
+  const q1 = parseInt(document.querySelector('input[name="q1"]:checked')?.value ?? 2);
+  const q2 = parseInt(document.querySelector('input[name="q2"]:checked')?.value ?? 1);
+  const q3 = parseInt(q3el.value);
 
   if (agentMode === 'kopilot') {
-    // Close MiFID modal, show Kopilot approval modal instead
     closeModal();
     showKopilotModal(q1, q2, q3);
     return;
   }
-
-  // Autopilot: run immediately
   await executeAgent(q1, q2, q3);
 });
 
