@@ -1426,6 +1426,7 @@ async function fetchState() {
       `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
 
     if (d.formatted_surplus) formattedSurplus = d.formatted_surplus;
+    if (d.safe_surplus)      surplusAmount    = d.safe_surplus;
     try { buildChart(d.chart); }              catch(e) { console.error('buildChart:', e); }
     try { buildDonut(d.expense_donut); }      catch(e) { console.error('buildDonut:', e); }
     try { renderLog(d.agent_log); }           catch(e) { console.error('renderLog:', e); }
@@ -1520,7 +1521,7 @@ function updateProjection(overrideData) {
   const profileKey   = scoreToKey(v2 || 1, v3 || 2);
   const rate         = PROFILE_RATES[profileKey];
   const horizon      = HORIZON_MAP[q1] || HORIZON_MAP[2];
-  const fv           = computeFV(15000, horizon.years, rate / 100);
+  const fv           = computeFV(surplusAmount, horizon.years, rate / 100);
   const variance     = PROFILE_VARIANCE[profileKey] ?? 0.008;
   const sigma        = Math.round(fv * Math.sqrt(variance) * Math.sqrt(horizon.years));
   const langHorizon  = (_ui('horizon') || {})[q1] || horizon.label;
@@ -1530,7 +1531,7 @@ function updateProjection(overrideData) {
     ev:          fv,
     sigma,
     years:       horizon.years,
-    monthly_pmt: 15000,
+    monthly_pmt: surplusAmount,
     annual_rate: rate,
     goal_label:  langHorizon,
     profile_label: _ui('profile_' + profileKey) || PROFILE_UI[profileKey]?.label || profileKey,
@@ -1591,6 +1592,7 @@ function _systemLogHtml(ts) {
 // ── Kopilot modal helpers ────────────────────────────────────────────────────
 let _pendingQ = null;
 let formattedSurplus = '15 000 Kč';  // pre-formatted by backend
+let surplusAmount    = 15000;               // integer, used by computeFV
 
 // ── MiFID 3-step wizard ──────────────────────────────────────────────────────
 let currentStep = 1;
@@ -1657,7 +1659,7 @@ function showKopilotModal(q1, q2, q3) {
   const horizon     = HORIZON_MAP[q1] || HORIZON_MAP[2];
   const langHorizon = ((_ui('horizon') || {})[q1]) || horizon.label;
   const rate        = PROFILE_RATES[profileKey];
-  const fv          = computeFV(15000, horizon.years, rate / 100);
+  const fv          = computeFV(surplusAmount, horizon.years, rate / 100);
   const fmtK        = (v) => new Intl.NumberFormat('cs-CZ').format(Math.round(v)) + ' Kč';
   const riskLevel   = _ui('kopilot_risk_' + profileKey);
   const goalLabel   = selectedGoalKey ? _ui('goal_' + selectedGoalKey) : langHorizon;
@@ -1726,6 +1728,7 @@ async function executeAgent(q1, q2, q3) {
     });
     const d = await res.json();
     if (d.formatted_surplus) formattedSurplus = d.formatted_surplus;
+    if (d.safe_surplus)      surplusAmount    = d.safe_surplus;
     closeModal();
     renderLog(d.agent_log);
     document.getElementById('log-box').insertAdjacentHTML('afterbegin', _systemLogHtml(sysTs));

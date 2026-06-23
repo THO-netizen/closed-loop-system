@@ -112,6 +112,23 @@ def _fmt_czk(amount: int) -> str:
     return f"{amount:,} Kč".replace(",", " ")
 
 
+def _actual_surplus() -> int:
+    """True monthly surplus derived from prediction cash flow.
+
+    actual_surplus = pred_income - (pred_expense - ETF_redirect)
+    The ETF redirect on day 22 is investment, not a living expense, so we
+    exclude it from costs before computing the free monthly cash.
+    This is the single source of truth for the Kopilot modal and FV calculator.
+    """
+    prediction = _state.get("prediction", [])
+    if not prediction:
+        return 5_000
+    pred_income  = sum(e.get("income",  0) for e in prediction)
+    pred_expense = sum(e.get("expense", 0) for e in prediction)
+    etf_redirect = SIMULATION_AMOUNT if any(e.get("is_agent") for e in prediction) else 0
+    return max(0, pred_income - (pred_expense - etf_redirect))
+
+
 def _var_label_investment(var: float) -> str:
     """Human-readable market-volatility label for investment context."""
     if var < 0.005:
@@ -935,8 +952,7 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
     if not api_key:
         return _run_fallback(risk_profile)
 
-    prediction = _state["prediction"]
-    safe_surplus = min(e["surplus"] for e in prediction[:15]) if prediction else 0.0
+    actual_surplus = _actual_surplus()
     profile = RISK_PROFILES.get(risk_profile, RISK_PROFILES["vyvazeny"])
     mortgage  = _state.get("mortgage_payment", 18_000)
     mini_loan = _state.get("mini_loan_payment", 4_000)
@@ -954,7 +970,7 @@ def run_agent(risk_profile: str = "vyvazeny") -> str:
         f"Spořicí účet: {_state['savings_balance']:,.0f} Kč\n"
         f"Portfolio (ETF): {_state['portfolio_value']:,.0f} Kč\n"
         f"Měsíční fixní závazky: splátka hypotéky {mortgage:,} Kč + půjčka {mini_loan:,} Kč\n"
-        f"Odhadovaný přebytek před závazky: {safe_surplus:,.0f} Kč\n\n"
+        f"Skutečný měsíční přebytek (příjmy − výdaje): {actual_surplus:,} Kč\n\n"
         "Proveď autonomní rozhodnutí."
     )
 
@@ -1270,13 +1286,7 @@ async def index(request: Request):
 
 @app.get("/api/state")
 async def get_state(lang: str = "cz"):
-    # safe_surplus = conservative monthly amount the agent can redirect to ETF
-    monthly_salary  = _state.get("monthly_salary", 75_000)
-    mortgage        = _state.get("mortgage_payment", 18_000)
-    mini_loan       = _state.get("mini_loan_payment", 4_000)
-    monthly_expense = _state.get("monthly_expense", 47_000)
-    computed = monthly_salary - mortgage - mini_loan - monthly_expense
-    safe_surplus = max(5_000, min(SIMULATION_AMOUNT, computed))
+    actual_surplus = _actual_surplus()
     return JSONResponse({
         "checking_balance": _state["checking_balance"],
         "savings_balance":  _state["savings_balance"],
@@ -1290,8 +1300,8 @@ async def get_state(lang: str = "cz"):
         "chart":            _build_monthly_chart(lang),
         "chart_story":      _build_chart_story(lang),
         "expense_donut":    _build_expense_donut(lang),
-        "safe_surplus":      int(safe_surplus),
-        "formatted_surplus": _fmt_czk(int(safe_surplus)),
+        "safe_surplus":      actual_surplus,
+        "formatted_surplus": _fmt_czk(actual_surplus),
     })
 
 
@@ -1327,23 +1337,18 @@ async def run_agent_endpoint(body: dict = Body(default={})):
 
     horizon_years = _HORIZON_YEARS.get(q1, 5)
     summary       = run_agent(risk_profile)
-    monthly_salary   = _state.get("monthly_salary", 75_000)
-    mortgage         = _state.get("mortgage_payment", 18_000)
-    mini_loan        = _state.get("mini_loan_payment", 4_000)
-    monthly_expense  = _state.get("monthly_expense", 47_000)
-    computed_surplus = monthly_salary - mortgage - mini_loan - monthly_expense
-    safe_surplus     = max(5_000, min(SIMULATION_AMOUNT, computed_surplus))
+    actual_surplus = _actual_surplus()
     return JSONResponse({
         "summary":         summary,
         "agent_log":       _state["agent_log"][-20:],
         "risk_profile":    risk_profile,
         "score":           score,
-        "safe_surplus":     int(safe_surplus),
-        "formatted_surplus": _fmt_czk(int(safe_surplus)),
+        "safe_surplus":    actual_surplus,
+        "formatted_surplus": _fmt_czk(actual_surplus),
         "detected_habits": _build_detected_habit(_state["habit_info"], lang) if _state.get("habit_info") else _state.get("detected_habits"),
         "chart_story":     _build_chart_story(lang),
         "projection":      _compute_investment_projection(
-            SIMULATION_AMOUNT, horizon_years, risk_profile
+            actual_surplus, horizon_years, risk_profile
         ),
         "horizon_q1":      q1,
     })
