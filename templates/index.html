@@ -442,6 +442,71 @@
   </div>
 </div>
 
+<!-- ── Kopilot approval modal ── -->
+<div id="kopilot-modal"
+     style="display:none"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+  <div class="glass rounded-2xl p-6 w-full max-w-lg space-y-5 glow-yellow relative">
+
+    <button id="km-close"
+            class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700
+                   flex items-center justify-center text-neutral-400 hover:text-white
+                   text-base transition-colors leading-none shrink-0">✕</button>
+
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-yellow-400/10 border border-yellow-400/20
+                  flex items-center justify-center text-xl shrink-0">🤝</div>
+      <div>
+        <h2 id="km-title" class="text-sm font-bold text-white tracking-tight"></h2>
+        <p id="km-subtitle" class="text-xs text-neutral-500 mt-0.5"></p>
+      </div>
+    </div>
+
+    <!-- Question bubble -->
+    <div class="rounded-xl bg-yellow-400/5 border border-yellow-400/20 p-4">
+      <p id="km-question" class="text-sm text-neutral-200 leading-relaxed"></p>
+    </div>
+
+    <!-- Three detail rows -->
+    <div class="space-y-4">
+      <div class="flex gap-3 items-start">
+        <span class="text-base shrink-0 mt-0.5">📊</span>
+        <div>
+          <p id="km-alloc-title" class="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-0.5"></p>
+          <p id="km-alloc" class="text-xs text-neutral-400 leading-relaxed"></p>
+        </div>
+      </div>
+      <div class="flex gap-3 items-start">
+        <span class="text-base shrink-0 mt-0.5">📈</span>
+        <div>
+          <p id="km-return-title" class="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-0.5"></p>
+          <p id="km-return" class="text-xs text-neutral-400 leading-relaxed"></p>
+        </div>
+      </div>
+      <div class="flex gap-3 items-start">
+        <span class="text-base shrink-0 mt-0.5">⚠️</span>
+        <div>
+          <p id="km-risk-title" class="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-0.5"></p>
+          <p id="km-risk" class="text-xs text-neutral-400 leading-relaxed"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex flex-col sm:flex-row gap-3 pt-1 border-t border-white/5">
+      <button id="km-cancel"
+              class="flex-1 py-3 rounded-xl border border-white/8 text-xs text-neutral-400
+                     hover:text-neutral-200 hover:border-yellow-400/30 transition-colors"></button>
+      <button id="km-confirm"
+              class="flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300
+                     text-xs font-bold text-neutral-950 transition-colors
+                     flex items-center justify-center gap-1.5"></button>
+    </div>
+
+  </div>
+</div>
+
 <script>
 // ── i18n ─────────────────────────────────────────────────────────────────────
 let currentLang = localStorage.getItem('rb_lang') || 'cz';
@@ -515,6 +580,20 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Byznys model', action_credit_risk:'Kreditní riziko',
     profile_konzervativni:'Konzervativní', profile_vyvazeny:'Vyvážený', profile_dynamicky:'Dynamický',
+    kopilot_title:'Doporučení AI Kopilota',
+    kopilot_subtitle:'Kopilot · AI asistent · Potvrzení investice',
+    kopilot_question:'Mám pro vás doporučení. Identifikoval jsem bezpečný měsíční přebytek {amount}. Mohu tuto částku investovat do vašeho cíle ({goal})?',
+    kopilot_alloc_title:'Kam peníze jdou',
+    kopilot_alloc:'70 % Akciové ETF (S&P 500 / MSCI World) · 30 % Dluhopisy a peněžní trh pro stabilitu portfolia.',
+    kopilot_return_title:'Předpokládaná návratnost',
+    kopilot_return:'Roční výnos: 8 % p.a. Očekávaná hodnota E[X] za {years} let: {fv}.',
+    kopilot_risk_title:'Rizikovost investice',
+    kopilot_risk:'{level}. Horizont {years} let historicky minimalizuje krátkodobé výkyvy.',
+    kopilot_risk_konzervativni:'Nízká volatilita',
+    kopilot_risk_vyvazeny:'Střední volatilita',
+    kopilot_risk_dynamicky:'Střední až vyšší volatilita',
+    kopilot_cancel:'Zrušit / Upravit cíle',
+    kopilot_confirm:'Potvrdit a zainvestovat 🚀',
   },
   ua: {
     checking_label:'Поточний рахунок', savings_label:'Ощадний рахунок', portfolio_label:'ETF Портфель',
@@ -584,6 +663,20 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Бізнес-модель', action_credit_risk:'Кредитний ризик',
     profile_konzervativni:'Консервативний', profile_vyvazeny:'Збалансований', profile_dynamicky:'Динамічний',
+    kopilot_title:'Рекомендація AI Копілота',
+    kopilot_subtitle:'Копілот · AI помічник · Підтвердження інвестиції',
+    kopilot_question:'Маю для вас рекомендацію. Я визначив безпечний місячний надлишок {amount}. Чи можу інвестувати цю суму у вашу мету ({goal})?',
+    kopilot_alloc_title:'Куди підуть гроші',
+    kopilot_alloc:'70 % Акціонерний ETF (S&P 500 / MSCI World) · 30 % Облігації та грошовий ринок для стабільності.',
+    kopilot_return_title:'Очікувана прибутковість',
+    kopilot_return:'Річна дохідність: 8 % річних. Очікувана вартість E[X] через {years} р.: {fv}.',
+    kopilot_risk_title:'Ризиковість інвестиції',
+    kopilot_risk:'{level}. Горизонт {years} р. історично мінімізує короткострокові коливання.',
+    kopilot_risk_konzervativni:'Низька волатильність',
+    kopilot_risk_vyvazeny:'Середня волатильність',
+    kopilot_risk_dynamicky:'Середньо-висока волатильність',
+    kopilot_cancel:'Скасувати / Змінити цілі',
+    kopilot_confirm:'Підтвердити та інвестувати 🚀',
   },
   sk: {
     checking_label:'Bežný účet', savings_label:'Sporiaci účet', portfolio_label:'ETF Portfólio',
@@ -653,6 +746,20 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Biznis model', action_credit_risk:'Kreditné riziko',
     profile_konzervativni:'Konzervatívny', profile_vyvazeny:'Vyvážený', profile_dynamicky:'Dynamický',
+    kopilot_title:'Odporúčanie AI Kopilota',
+    kopilot_subtitle:'Kopilot · AI asistent · Potvrdenie investície',
+    kopilot_question:'Mám pre vás odporúčanie. Identifikoval som bezpečný mesačný prebytok {amount}. Môžem túto sumu investovať do vášho cieľa ({goal})?',
+    kopilot_alloc_title:'Kam idú peniaze',
+    kopilot_alloc:'70 % Akciové ETF (S&P 500 / MSCI World) · 30 % Dlhopisy a peňažný trh pre stabilitu portfólia.',
+    kopilot_return_title:'Predpokladaná návratnosť',
+    kopilot_return:'Ročný výnos: 8 % p.a. Očakávaná hodnota E[X] za {years} rokov: {fv}.',
+    kopilot_risk_title:'Rizikovosť investície',
+    kopilot_risk:'{level}. Horizont {years} rokov historicky minimalizuje krátkodobé výkyvy.',
+    kopilot_risk_konzervativni:'Nízka volatilita',
+    kopilot_risk_vyvazeny:'Stredná volatilita',
+    kopilot_risk_dynamicky:'Stredná až vyššia volatilita',
+    kopilot_cancel:'Zrušiť / Upraviť ciele',
+    kopilot_confirm:'Potvrdiť a investovať 🚀',
   },
   vn: {
     checking_label:'Tài khoản thanh toán', savings_label:'Tài khoản tiết kiệm', portfolio_label:'Danh mục ETF',
@@ -722,6 +829,20 @@ const LANG_STRINGS = {
     action_risk_engine:'Công cụ rủi ro', action_liquidity_guard:'Bảo vệ thanh khoản',
     action_biz_model:'Mô hình kinh doanh', action_credit_risk:'Rủi ro tín dụng',
     profile_konzervativni:'Bảo thủ', profile_vyvazeny:'Cân bằng', profile_dynamicky:'Năng động',
+    kopilot_title:'Khuyến nghị của AI Copilot',
+    kopilot_subtitle:'Copilot · Trợ lý AI · Xác nhận đầu tư',
+    kopilot_question:'Tôi có một khuyến nghị cho bạn. Tôi xác định được khoản thặng dư hàng tháng an toàn là {amount}. Tôi có thể đầu tư khoản này vào mục tiêu của bạn ({goal}) không?',
+    kopilot_alloc_title:'Tiền đi đâu',
+    kopilot_alloc:'70 % ETF cổ phiếu (S&P 500 / MSCI World) · 30 % Trái phiếu và thị trường tiền tệ để ổn định.',
+    kopilot_return_title:'Lợi nhuận dự kiến',
+    kopilot_return:'Lợi suất hàng năm: 8 % năm. Giá trị kỳ vọng E[X] sau {years} năm: {fv}.',
+    kopilot_risk_title:'Mức độ rủi ro',
+    kopilot_risk:'{level}. Kỳ hạn {years} năm đã chứng minh giảm thiểu biến động ngắn hạn.',
+    kopilot_risk_konzervativni:'Biến động thấp',
+    kopilot_risk_vyvazeny:'Biến động vừa phải',
+    kopilot_risk_dynamicky:'Biến động vừa đến cao',
+    kopilot_cancel:'Hủy / Điều chỉnh mục tiêu',
+    kopilot_confirm:'Xác nhận và đầu tư 🚀',
   },
   ru: {
     checking_label:'Текущий счёт', savings_label:'Сберегательный счёт', portfolio_label:'ETF Портфель',
@@ -791,6 +912,20 @@ const LANG_STRINGS = {
     action_risk_engine:'Risk Engine', action_liquidity_guard:'Liquidity Guard',
     action_biz_model:'Бизнес-модель', action_credit_risk:'Кредитный риск',
     profile_konzervativni:'Консервативный', profile_vyvazeny:'Сбалансированный', profile_dynamicky:'Динамичный',
+    kopilot_title:'Рекомендация AI Копилота',
+    kopilot_subtitle:'Копилот · AI помощник · Подтверждение инвестиции',
+    kopilot_question:'У меня есть рекомендация для вас. Я определил безопасный ежемесячный профицит {amount}. Могу ли я инвестировать эту сумму в вашу цель ({goal})?',
+    kopilot_alloc_title:'Куда пойдут деньги',
+    kopilot_alloc:'70 % Акционерный ETF (S&P 500 / MSCI World) · 30 % Облигации и денежный рынок для стабильности.',
+    kopilot_return_title:'Ожидаемая доходность',
+    kopilot_return:'Годовая доходность: 8 % годовых. Ожидаемая стоимость E[X] через {years} лет: {fv}.',
+    kopilot_risk_title:'Рискованность инвестиции',
+    kopilot_risk:'{level}. Горизонт {years} лет исторически минимизирует краткосрочные колебания.',
+    kopilot_risk_konzervativni:'Низкая волатильность',
+    kopilot_risk_vyvazeny:'Средняя волатильность',
+    kopilot_risk_dynamicky:'Средняя и высокая волатильность',
+    kopilot_cancel:'Отмена / Изменить цели',
+    kopilot_confirm:'Подтвердить и инвестировать 🚀',
   },
 };
 
@@ -1390,6 +1525,101 @@ function _systemLogHtml(ts) {
   </div>`;
 }
 
+// ── Kopilot modal helpers ────────────────────────────────────────────────────
+let _pendingQ = null;
+
+function showKopilotModal(q1, q2, q3) {
+  _pendingQ = { q1, q2, q3 };
+
+  const score       = q1 + q2 + q3;
+  const profileKey  = scoreToKey(score);
+  const horizon     = HORIZON_MAP[q1] || HORIZON_MAP[2];
+  const langHorizon = ((_ui('horizon') || {})[q1]) || horizon.label;
+  const fv          = computeFV(15000, horizon.years, 0.08);
+  const fmtK        = (v) => new Intl.NumberFormat('cs-CZ').format(Math.round(v)) + ' Kč';
+  const riskLevel   = _ui('kopilot_risk_' + profileKey);
+
+  document.getElementById('km-title').textContent    = _ui('kopilot_title');
+  document.getElementById('km-subtitle').textContent = _ui('kopilot_subtitle');
+  document.getElementById('km-question').innerHTML   = _uifmt('kopilot_question', {
+    amount: `<strong class="text-yellow-400">${fmtK(15000)}</strong>`,
+    goal:   `<strong class="text-yellow-300">${langHorizon}</strong>`,
+  });
+  document.getElementById('km-alloc-title').textContent  = _ui('kopilot_alloc_title');
+  document.getElementById('km-alloc').textContent         = _ui('kopilot_alloc');
+  document.getElementById('km-return-title').textContent  = _ui('kopilot_return_title');
+  document.getElementById('km-return').textContent        = _uifmt('kopilot_return', {
+    years: horizon.years,
+    fv:    fmtK(fv),
+  });
+  document.getElementById('km-risk-title').textContent = _ui('kopilot_risk_title');
+  document.getElementById('km-risk').textContent       = _uifmt('kopilot_risk', {
+    level: riskLevel,
+    years: horizon.years,
+  });
+  document.getElementById('km-cancel').textContent  = _ui('kopilot_cancel');
+  document.getElementById('km-confirm').textContent = _ui('kopilot_confirm');
+
+  document.getElementById('kopilot-modal').style.display = 'flex';
+}
+
+function closeKopilotModal() {
+  document.getElementById('kopilot-modal').style.display = 'none';
+  _pendingQ = null;
+}
+
+document.getElementById('km-close').addEventListener('click', closeKopilotModal);
+document.getElementById('km-cancel').addEventListener('click', closeKopilotModal);
+document.getElementById('kopilot-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('kopilot-modal')) closeKopilotModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeKopilotModal();
+});
+
+document.getElementById('km-confirm').addEventListener('click', async () => {
+  const q = _pendingQ;
+  closeKopilotModal();
+  if (q) await executeAgent(q.q1, q.q2, q.q3);
+});
+
+// ── Agent execution (shared by Autopilot and Kopilot confirm) ────────────────
+async function executeAgent(q1, q2, q3) {
+  const btn     = document.getElementById('btn-run');
+  const spinner = document.getElementById('spinner');
+  btn.disabled = true;
+  btn.classList.add('opacity-50');
+  spinner.style.display = 'flex';
+
+  const sysTs = new Date().toTimeString().slice(0, 8);
+  document.getElementById('log-box').innerHTML = _systemLogHtml(sysTs);
+
+  try {
+    const res = await fetch('/api/run-agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q1, q2, q3, lang: currentLang }),
+    });
+    const d = await res.json();
+    closeModal();
+    renderLog(d.agent_log);
+    document.getElementById('log-box').insertAdjacentHTML('afterbegin', _systemLogHtml(sysTs));
+    renderHabitWidget(d.detected_habits);
+    if (d.chart_story) renderStory(d.chart_story);
+    if (d.projection) {
+      const h  = HORIZON_MAP[d.horizon_q1] || HORIZON_MAP[2];
+      const hl = ((_ui('horizon') || {})[d.horizon_q1]) || h.label;
+      updateProjection({ ...d.projection, goal_label: hl });
+    }
+    await fetchState();
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('opacity-50');
+    spinner.style.display = 'none';
+  }
+}
+
+// ── MiFID run button ─────────────────────────────────────────────────────────
 document.getElementById('btn-run').addEventListener('click', async () => {
   const q1el = document.querySelector('input[name="q1"]:checked');
   const q2el = document.querySelector('input[name="q2"]:checked');
@@ -1401,46 +1631,17 @@ document.getElementById('btn-run').addEventListener('click', async () => {
   }
   document.getElementById('q-error').classList.add('hidden');
 
-  const btn     = document.getElementById('btn-run');
-  const spinner = document.getElementById('spinner');
-  btn.disabled = true;
-  btn.classList.add('opacity-50');
-  spinner.style.display = 'flex';
+  const q1 = parseInt(q1el.value), q2 = parseInt(q2el.value), q3 = parseInt(q3el.value);
 
-  // Show Open Banking connection line immediately — before API responds
-  const sysTs = new Date().toTimeString().slice(0, 8);
-  document.getElementById('log-box').innerHTML = _systemLogHtml(sysTs);
-
-  try {
-    const res = await fetch('/api/run-agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        q1:   parseInt(q1el.value),
-        q2:   parseInt(q2el.value),
-        q3:   parseInt(q3el.value),
-        lang: currentLang,
-      }),
-    });
-    const d = await res.json();
+  if (agentMode === 'kopilot') {
+    // Close MiFID modal, show Kopilot approval modal instead
     closeModal();
-    renderLog(d.agent_log);
-    // Keep system connection line as the first entry in the log
-    document.getElementById('log-box').insertAdjacentHTML('afterbegin', _systemLogHtml(sysTs));
-    renderHabitWidget(d.detected_habits);
-    if (d.chart_story) renderStory(d.chart_story);
-    // Update projection with confirmed backend numbers (uses actual q1 horizon + profile)
-    if (d.projection) {
-      const h  = HORIZON_MAP[d.horizon_q1] || HORIZON_MAP[2];
-      const hl = (_ui('horizon') || {})[d.horizon_q1] || h.label;
-      updateProjection({ ...d.projection, goal_label: hl });
-    }
-    await fetchState();
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove('opacity-50');
-    spinner.style.display = 'none';
+    showKopilotModal(q1, q2, q3);
+    return;
   }
+
+  // Autopilot: run immediately
+  await executeAgent(q1, q2, q3);
 });
 
 document.getElementById('btn-reset').addEventListener('click', async () => {
