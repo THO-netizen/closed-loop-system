@@ -1265,6 +1265,13 @@ async def index(request: Request):
 
 @app.get("/api/state")
 async def get_state(lang: str = "cz"):
+    # safe_surplus = conservative monthly amount the agent can redirect to ETF
+    monthly_salary  = _state.get("monthly_salary", 75_000)
+    mortgage        = _state.get("mortgage_payment", 18_000)
+    mini_loan       = _state.get("mini_loan_payment", 4_000)
+    monthly_expense = _state.get("monthly_expense", 47_000)
+    computed = monthly_salary - mortgage - mini_loan - monthly_expense
+    safe_surplus = max(5_000, min(SIMULATION_AMOUNT, computed))
     return JSONResponse({
         "checking_balance": _state["checking_balance"],
         "savings_balance":  _state["savings_balance"],
@@ -1278,6 +1285,7 @@ async def get_state(lang: str = "cz"):
         "chart":            _build_monthly_chart(lang),
         "chart_story":      _build_chart_story(lang),
         "expense_donut":    _build_expense_donut(lang),
+        "safe_surplus":     int(safe_surplus),
     })
 
 
@@ -1313,11 +1321,18 @@ async def run_agent_endpoint(body: dict = Body(default={})):
 
     horizon_years = _HORIZON_YEARS.get(q1, 5)
     summary       = run_agent(risk_profile)
+    monthly_salary   = _state.get("monthly_salary", 75_000)
+    mortgage         = _state.get("mortgage_payment", 18_000)
+    mini_loan        = _state.get("mini_loan_payment", 4_000)
+    monthly_expense  = _state.get("monthly_expense", 47_000)
+    computed_surplus = monthly_salary - mortgage - mini_loan - monthly_expense
+    safe_surplus     = max(5_000, min(SIMULATION_AMOUNT, computed_surplus))
     return JSONResponse({
         "summary":         summary,
         "agent_log":       _state["agent_log"][-20:],
         "risk_profile":    risk_profile,
         "score":           score,
+        "safe_surplus":    int(safe_surplus),
         "detected_habits": _build_detected_habit(_state["habit_info"], lang) if _state.get("habit_info") else _state.get("detected_habits"),
         "chart_story":     _build_chart_story(lang),
         "projection":      _compute_investment_projection(

@@ -595,7 +595,7 @@ const LANG_STRINGS = {
     action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Cílový trh produktu',
     kopilot_title:'Doporučení AI Kopilota',
     kopilot_subtitle:'Kopilot · AI asistent · Potvrzení investice',
-    kopilot_question:'Mám pro vás doporučení. Identifikoval jsem bezpečný měsíční přebytek {amount}. Mohu tuto částku investovat do vašeho cíle ({goal})?',
+    kopilot_question:'Mám pro vás doporučení. Identifikoval jsem bezpečný měsíční přebytek <span class="dynamic-surplus-value"></span>&nbsp;Kč. Mohu tuto částku investovat do vašeho cíle ({goal})?',
     kopilot_alloc_title:'Kam peníze jdou',
     kopilot_alloc_konzervativni:'80 % Dluhopisy a termínované vklady · 20 % Stabilní ETF s nízkou volatilitou.',
     kopilot_alloc_vyvazeny:'50 % Dluhopisy a peněžní trh · 50 % Vyvážené akciové ETF (MSCI World).',
@@ -688,7 +688,7 @@ const LANG_STRINGS = {
     action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Цільовий ринок продукту',
     kopilot_title:'Рекомендація AI Копілота',
     kopilot_subtitle:'Копілот · AI помічник · Підтвердження інвестиції',
-    kopilot_question:'Маю для вас рекомендацію. Я визначив безпечний місячний надлишок {amount}. Чи можу інвестувати цю суму у вашу мету ({goal})?',
+    kopilot_question:'Маю для вас рекомендацію. Я визначив безпечний місячний надлишок <span class="dynamic-surplus-value"></span>&nbsp;Kč. Чи можу інвестувати цю суму у вашу мету ({goal})?',
     kopilot_alloc_title:'Куди підуть гроші',
     kopilot_alloc_konzervativni:'80 % Облігації та строкові вклади · 20 % Стабільний ETF з низькою волатильністю.',
     kopilot_alloc_vyvazeny:'50 % Облігації та грошовий ринок · 50 % Збалансований акціонерний ETF (MSCI World).',
@@ -781,7 +781,7 @@ const LANG_STRINGS = {
     action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Cieľový trh produktu',
     kopilot_title:'Odporúčanie AI Kopilota',
     kopilot_subtitle:'Kopilot · AI asistent · Potvrdenie investície',
-    kopilot_question:'Mám pre vás odporúčanie. Identifikoval som bezpečný mesačný prebytok {amount}. Môžem túto sumu investovať do vášho cieľa ({goal})?',
+    kopilot_question:'Mám pre vás odporúčanie. Identifikoval som bezpečný mesačný prebytok <span class="dynamic-surplus-value"></span>&nbsp;Kč. Môžem túto sumu investovať do vášho cieľa ({goal})?',
     kopilot_alloc_title:'Kam idú peniaze',
     kopilot_alloc_konzervativni:'80 % Dlhopisy a termínované vklady · 20 % Stabilné ETF s nízkou volatilitou.',
     kopilot_alloc_vyvazeny:'50 % Dlhopisy a peňažný trh · 50 % Vyvážené akciové ETF (MSCI World).',
@@ -874,7 +874,7 @@ const LANG_STRINGS = {
     action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Thị trường mục tiêu sản phẩm',
     kopilot_title:'Khuyến nghị của AI Copilot',
     kopilot_subtitle:'Copilot · Trợ lý AI · Xác nhận đầu tư',
-    kopilot_question:'Tôi có một khuyến nghị cho bạn. Tôi xác định được khoản thặng dư hàng tháng an toàn là {amount}. Tôi có thể đầu tư khoản này vào mục tiêu của bạn ({goal}) không?',
+    kopilot_question:'Tôi có một khuyến nghị cho bạn. Tôi xác định được khoản thặng dư hàng tháng an toàn là <span class="dynamic-surplus-value"></span>&nbsp;Kč. Tôi có thể đầu tư khoản này vào mục tiêu của bạn ({goal}) không?',
     kopilot_alloc_title:'Tiền đi đâu',
     kopilot_alloc_konzervativni:'80 % Trái phiếu và tiền gửi có kỳ hạn · 20 % ETF ổn định với biến động thấp.',
     kopilot_alloc_vyvazeny:'50 % Trái phiếu và thị trường tiền tệ · 50 % ETF cổ phiếu cân bằng (MSCI World).',
@@ -967,7 +967,7 @@ const LANG_STRINGS = {
     action_mifid_prescoring:'MiFID Pre-scoring', action_target_market:'Целевой рынок продукта',
     kopilot_title:'Рекомендация AI Копилота',
     kopilot_subtitle:'Копилот · AI помощник · Подтверждение инвестиции',
-    kopilot_question:'У меня есть рекомендация для вас. Я определил безопасный ежемесячный профицит {amount}. Могу ли я инвестировать эту сумму в вашу цель ({goal})?',
+    kopilot_question:'У меня есть рекомендация для вас. Я определил безопасный ежемесячный профицит <span class="dynamic-surplus-value"></span>&nbsp;Kč. Могу ли я инвестировать эту сумму в вашу цель ({goal})?',
     kopilot_alloc_title:'Куда пойдут деньги',
     kopilot_alloc_konzervativni:'80 % Облигации и срочные вклады · 20 % Стабильный ETF с низкой волатильностью.',
     kopilot_alloc_vyvazeny:'50 % Облигации и денежный рынок · 50 % Сбалансированный акционерный ETF (MSCI World).',
@@ -995,6 +995,12 @@ function _uifmt(key, vars) {
   return t;
 }
 
+function injectSurplus() {
+  document.querySelectorAll('.dynamic-surplus-value').forEach(el => {
+    el.innerHTML = `<strong class="text-yellow-400">${fmt(currentSurplus)}</strong>`;
+  });
+}
+
 function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
@@ -1007,6 +1013,7 @@ function applyTranslations() {
     b.className = b.className.replace(/text-\S+/g, '');
     b.classList.add(active ? 'text-yellow-400' : 'text-neutral-600', 'hover:text-white');
   });
+  injectSurplus();
 }
 
 function setLang(lang) {
@@ -1425,6 +1432,7 @@ async function fetchState() {
     document.getElementById('card-units').textContent =
       `${d.portfolio_units.toFixed(2)} j. @ ${d.etf_price.toFixed(2)} Kč`;
 
+    if (d.safe_surplus) { currentSurplus = d.safe_surplus; injectSurplus(); }
     try { buildChart(d.chart); }              catch(e) { console.error('buildChart:', e); }
     try { buildDonut(d.expense_donut); }      catch(e) { console.error('buildDonut:', e); }
     try { renderLog(d.agent_log); }           catch(e) { console.error('renderLog:', e); }
@@ -1589,6 +1597,7 @@ function _systemLogHtml(ts) {
 
 // ── Kopilot modal helpers ────────────────────────────────────────────────────
 let _pendingQ = null;
+let currentSurplus = 15000;  // updated live from /api/state and /api/run-agent
 
 // ── MiFID 3-step wizard ──────────────────────────────────────────────────────
 let currentStep = 1;
@@ -1663,8 +1672,10 @@ function showKopilotModal(q1, q2, q3) {
   document.getElementById('km-title').textContent    = _ui('kopilot_title');
   document.getElementById('km-subtitle').textContent = _ui('kopilot_subtitle');
   document.getElementById('km-question').innerHTML   = _uifmt('kopilot_question', {
-    amount: `<strong class="text-yellow-400">${fmtK(15000)}</strong>`,
-    goal:   `<strong class="text-yellow-300">${goalLabel}</strong>`,
+    goal: `<strong class="text-yellow-300">${goalLabel}</strong>`,
+  });
+  document.querySelectorAll('.dynamic-surplus-value').forEach(el => {
+    el.innerHTML = `<strong class="text-yellow-400">${fmtK(currentSurplus)}</strong>`;
   });
   document.getElementById('km-alloc-title').textContent  = _ui('kopilot_alloc_title');
   document.getElementById('km-alloc').textContent        = _ui('kopilot_alloc_' + profileKey) || _ui('kopilot_alloc_dynamicky');
@@ -1723,6 +1734,7 @@ async function executeAgent(q1, q2, q3) {
       body: JSON.stringify({ q1, q2, q3, lang: currentLang }),
     });
     const d = await res.json();
+    if (d.safe_surplus) { currentSurplus = d.safe_surplus; injectSurplus(); }
     closeModal();
     renderLog(d.agent_log);
     document.getElementById('log-box').insertAdjacentHTML('afterbegin', _systemLogHtml(sysTs));
